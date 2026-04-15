@@ -122,7 +122,7 @@ def annotate_with_openai(image_path: Path, name: str, category: str,
 
 def annotate_with_anthropic(image_path: Path, name: str, category: str,
                              address: str, tile_size: int = 640,
-                             model: str = "claude-sonnet-4-20250514") -> AnnotationResult:
+                             model: str = "claude-sonnet-4-6") -> AnnotationResult:
     """Use Anthropic's vision API to annotate a place."""
     try:
         from anthropic import Anthropic

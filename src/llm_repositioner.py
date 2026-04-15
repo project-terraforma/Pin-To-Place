@@ -143,7 +143,7 @@ def reposition_single_anthropic(
     confidence: float, source_count: int,
     geocode_info: str, lat_center: float, lon_center: float,
     tile_size: int = 640, zoom: int = 18,
-    model: str = "claude-sonnet-4-20250514",
+    model: str = "claude-sonnet-4-6",
 ) -> RepositionResult:
     """Reposition a single place using Anthropic vision."""
     try:

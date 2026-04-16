@@ -16,10 +16,10 @@ Establish a defensible definition and ground truth dataset for correct place pin
 
 ## Objective #2
 
-Deliver a repositioning pipeline that measurably improves place pin accuracy over the current Overture Maps baseline.
+Develop and train a specialized Neural Network architecture to correct and reposition precise geometric locations. 
 
 ### Key Results
 
-1. Measure the current baseline offset (mean, median, p90) for all 750 ground truth places segmented by category and region
-2. Prototype and evaluate 3 repositioning methods (geocoder ensemble, ML ranker, LLM reasoning) and achieve a **≥ 30% reduction in median offset** vs. baseline with a regression rate **< 10%**
-3. Publish a production recommendation in `docs/recommendation.md` identifying the best method(s) by category type and cost-per-place
+1. Model training through building a neural network using the given datasets from Overture maps to create a ground truth dataset consisting of a minimum of $(n=750)$.
+2. Ensure the Neural Network achieves a smaller "spatial offset" (distance error) than the most updated Spatial Repositioning projects at Project Terraforma.
+3. Integrate a quickest-path feature based on the pin datasets and cost of getting there through machine measurements that produces top-3 results. 

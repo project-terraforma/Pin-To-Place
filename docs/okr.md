@@ -16,10 +16,10 @@ Establish a defensible definition and ground truth dataset for correct place pin
 
 ## Objective #2
 
-Develop and train a specialized Neural Network architecture to correct and reposition precise geometric locations. 
+Surpass the current Project Terraforma precision in geometric place-pin placement through specialized neural architecture.
 
 ### Key Results
 
-1. Model training through building a neural network using the given datasets from Overture maps to create a ground truth dataset consisting of a minimum of $(n=750)$.
-2. Ensure the Neural Network achieves a smaller "spatial offset" (distance error) than the most updated Spatial Repositioning projects at Project Terraforma.
-3. Integrate a quickest-path feature based on the pin datasets and cost of getting there through machine measurements that produces top-3 results. 
+1. Reduce median spatial offset error by 20% compared to the current Project Terraforma benchmark across the n=750 ground truth dataset.
+2. Reach a training loss of < 0.05 (normalized MSE) and validation accuracy of > 88% on the Overture Maps dataset.
+3. Successfully integrate the "Quickest Path" feature, ensuring it reduces the calculated "cost of arrival" error by at least 15% in top-3 measured results compared to baseline pin data. 

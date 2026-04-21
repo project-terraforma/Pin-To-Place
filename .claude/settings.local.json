@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python src/data_loader.py)",
+      "Bash(python src/metrics.py)"
+    ]
+  }
+}

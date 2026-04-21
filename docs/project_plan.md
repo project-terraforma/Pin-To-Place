@@ -2,7 +2,7 @@
 
 ## Location & Positional Accuracy for Overture Maps
 
-**Team:** Aaron J. Yam & Nathan Yu | Project Terraforma @ UCSC
+**Team:** Aaron J. Yam & Shivani Belambe | Project Terraforma @ UCSC
 
 ---
 

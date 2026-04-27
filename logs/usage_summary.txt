@@ -1,0 +1,18 @@
+Pin-To-Place — LLM Usage Summary
+Last updated: 2026-04-27 06:46 UTC
+Log entries:  750
+
+── Totals ──────────────────────────────
+  Input tokens:    2,357,159
+  Output tokens:      48,279
+  Total tokens:    2,405,438
+  Total cost:     $    0.3825
+
+── By Model ────────────────────────────
+  gpt-4o-mini
+    calls:     750
+    tokens: 2,405,438
+    cost:   $0.3825
+
+── By Run Label ────────────────────────
+  ground_truth_annotation          750 calls   $0.3825

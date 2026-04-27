@@ -5,6 +5,7 @@ Uses LLM vision + place context to reason about correct pin placement.
 
 import os
 import json
+import re
 import base64
 import logging
 from pathlib import Path
@@ -111,18 +112,17 @@ def reposition_single_openai(
             max_tokens=800,
             temperature=0.1,
         )
-        content = response.choices[0].message.content.strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        result = json.loads(content)
+        from src.cost_tracker import log_usage
+        from src.satellite_fetcher import pixel_to_latlon
+        usage = response.usage
+        log_usage(model, usage.prompt_tokens, usage.completion_tokens, run_label="llm_repositioning")
 
-        # Convert pixel to lat/lon
-        from src.satellite_fetcher import GoogleStaticMapFetcher
-        fetcher = GoogleStaticMapFetcher(zoom=zoom, size=tile_size)
-        new_lat, new_lon = fetcher.pixel_to_latlon(
-            lat_center, lon_center, result["pixel_x"], result["pixel_y"]
+        content = response.choices[0].message.content.strip()
+        match = re.search(r"\{[^{}]*\}", content, re.DOTALL)
+        result = json.loads(match.group(0) if match else content)
+
+        new_lat, new_lon = pixel_to_latlon(
+            lat_center, lon_center, result["pixel_x"], result["pixel_y"], tile_size, zoom
         )
 
         return RepositionResult(
@@ -173,17 +173,16 @@ def reposition_single_anthropic(
                 ],
             }],
         )
-        content = response.content[0].text.strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        result = json.loads(content)
+        from src.cost_tracker import log_usage
+        from src.satellite_fetcher import pixel_to_latlon
+        log_usage(model, response.usage.input_tokens, response.usage.output_tokens, run_label="llm_repositioning")
 
-        from src.satellite_fetcher import GoogleStaticMapFetcher
-        fetcher = GoogleStaticMapFetcher(zoom=zoom, size=tile_size)
-        new_lat, new_lon = fetcher.pixel_to_latlon(
-            lat_center, lon_center, result["pixel_x"], result["pixel_y"]
+        content = response.content[0].text.strip()
+        match = re.search(r"\{[^{}]*\}", content, re.DOTALL)
+        result = json.loads(match.group(0) if match else content)
+
+        new_lat, new_lon = pixel_to_latlon(
+            lat_center, lon_center, result["pixel_x"], result["pixel_y"], tile_size, zoom
         )
 
         return RepositionResult(

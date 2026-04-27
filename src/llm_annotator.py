@@ -5,12 +5,28 @@ Uses GPT-4o or Claude to examine satellite imagery and identify correct pin loca
 
 import os
 import json
+import re
 import base64
 import logging
 from pathlib import Path
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_json(content: str) -> dict:
+    """Extract a JSON object from an LLM response regardless of surrounding text."""
+    content = content.strip()
+    # Try direct parse first
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        pass
+    # Find first {...} block (handles markdown code fences and extra explanation)
+    match = re.search(r"\{[^{}]*\}", content, re.DOTALL)
+    if match:
+        return json.loads(match.group(0))
+    raise ValueError(f"No JSON object found in LLM response: {content[:200]!r}")
 
 
 @dataclass
@@ -90,7 +106,7 @@ def annotate_with_openai(image_path: Path, name: str, category: str,
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/png;base64,{b64_image}",
-                                "detail": "high",
+                                "detail": "low",
                             },
                         },
                     ],
@@ -99,13 +115,12 @@ def annotate_with_openai(image_path: Path, name: str, category: str,
             max_tokens=500,
             temperature=0.1,
         )
+        from src.cost_tracker import log_usage
+        usage = response.usage
+        log_usage(model, usage.prompt_tokens, usage.completion_tokens, run_label="ground_truth_annotation")
+
         content = response.choices[0].message.content.strip()
-        # Parse JSON from response
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        result = json.loads(content)
+        result = _parse_json(content)
         return AnnotationResult(
             place_id="",
             gt_lat=None,  # Will be filled by caller after pixel->latlon conversion
@@ -159,12 +174,11 @@ def annotate_with_anthropic(image_path: Path, name: str, category: str,
                 }
             ],
         )
+        from src.cost_tracker import log_usage
+        log_usage(model, response.usage.input_tokens, response.usage.output_tokens, run_label="ground_truth_annotation")
+
         content = response.content[0].text.strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        result = json.loads(content)
+        result = _parse_json(content)
         return AnnotationResult(
             place_id="",
             gt_lat=None,
@@ -182,27 +196,28 @@ def annotate_with_anthropic(image_path: Path, name: str, category: str,
 def annotate_place(image_path: Path, name: str, category: str, address: str,
                    lat_center: float, lon_center: float,
                    tile_size: int = 640, zoom: int = 18,
-                   provider: str = "openai") -> AnnotationResult:
+                   provider: str = "openai",
+                   model: str | None = None) -> AnnotationResult:
     """
     Full annotation pipeline: get LLM pixel prediction, convert to lat/lon.
+    model overrides the default for the chosen provider.
     """
-    from src.satellite_fetcher import GoogleStaticMapFetcher
-
     if provider == "openai":
-        result = annotate_with_openai(image_path, name, category, address, tile_size)
+        result = annotate_with_openai(image_path, name, category, address, tile_size,
+                                      model=model or "gpt-4o-mini")
     elif provider == "anthropic":
-        result = annotate_with_anthropic(image_path, name, category, address, tile_size)
+        result = annotate_with_anthropic(image_path, name, category, address, tile_size,
+                                         model=model or "claude-sonnet-4-6")
     else:
         raise ValueError(f"Unknown provider: {provider}")
 
     if result.raw_response and "pixel_x" in result.raw_response:
-        fetcher = GoogleStaticMapFetcher(zoom=zoom, size=tile_size)
-        gt_lat, gt_lon = fetcher.pixel_to_latlon(
+        from src.satellite_fetcher import pixel_to_latlon
+        result.gt_lat, result.gt_lon = pixel_to_latlon(
             lat_center, lon_center,
             result.raw_response["pixel_x"],
             result.raw_response["pixel_y"],
+            size=tile_size, zoom=zoom,
         )
-        result.gt_lat = gt_lat
-        result.gt_lon = gt_lon
 
     return result

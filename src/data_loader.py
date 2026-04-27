@@ -91,13 +91,12 @@ def load_places(path: Path | str | None = None) -> pd.DataFrame:
     )
     df["source_count"] = df["source_datasets"].apply(len)
 
-    # Build full address string for geocoding
-    df["full_address"] = df.apply(
-        lambda r: ", ".join(
-            filter(None, [r["freeform"], r["locality"], r["region"], r["postcode"], r["country"]])
-        ),
-        axis=1,
-    )
+    # Build full address string for geocoding (skip NaN fields, not just None)
+    def _join_address(r):
+        parts = [r["freeform"], r["locality"], r["region"], r["postcode"], r["country"]]
+        return ", ".join(str(v) for v in parts if v is not None and v == v)  # v==v is False for NaN
+
+    df["full_address"] = df.apply(_join_address, axis=1)
 
     return df
 

@@ -138,11 +138,43 @@ class MapboxGeocoder:
         return GeocodingResult(lat=None, lon=None, source="mapbox", confidence=0.0)
 
 
+class USCensusGeocoder:
+    """US Census Bureau geocoder. Completely free, no API key, US addresses only."""
+
+    BASE_URL = "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
+
+    def geocode(self, address: str) -> GeocodingResult:
+        try:
+            resp = requests.get(
+                self.BASE_URL,
+                params={"address": address, "benchmark": "Public_AR_Current", "format": "json"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            matches = data.get("result", {}).get("addressMatches", [])
+            if matches:
+                coords = matches[0]["coordinates"]
+                return GeocodingResult(
+                    lat=float(coords["y"]),
+                    lon=float(coords["x"]),
+                    source="us_census",
+                    confidence=0.8,
+                    raw_response=matches[0],
+                )
+        except Exception as e:
+            logger.warning(f"US Census geocoding failed for '{address}': {e}")
+        return GeocodingResult(lat=None, lon=None, source="us_census", confidence=0.0)
+
+
 class MultiGeocoder:
     """Geocode using multiple services and return all results."""
 
-    def __init__(self, google_key: str | None = None, mapbox_key: str | None = None):
+    def __init__(self, google_key: str | None = None, mapbox_key: str | None = None,
+                 use_census: bool = True):
         self.geocoders = [NominatimGeocoder()]
+        if use_census:
+            self.geocoders.append(USCensusGeocoder())
         if google_key or os.environ.get("GOOGLE_MAPS_API_KEY"):
             self.geocoders.append(GoogleGeocoder(google_key))
         if mapbox_key or os.environ.get("MAPBOX_API_KEY"):

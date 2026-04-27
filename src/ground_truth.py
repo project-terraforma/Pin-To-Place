@@ -5,16 +5,17 @@ and cross-validation with multi-geocoder consensus.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import pandas as pd
 import numpy as np
 
 from src.data_loader import load_places
-from src.satellite_fetcher import GoogleStaticMapFetcher
+from src.satellite_fetcher import GoogleStaticMapFetcher, MapboxStaticFetcher, ESRIStaticFetcher
 from src.llm_annotator import annotate_place
 from src.geocoder import MultiGeocoder
-from src.metrics import haversine_meters
+from src.metrics import haversine_meters, euclidean_meters, manhattan_meters
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,9 @@ def stratified_sample(df: pd.DataFrame, n: int = 750,
         sampled.append(stratum_df.sample(n=actual_n, random_state=rng))
 
     result = pd.concat(sampled).drop(columns=["_stratum"])
-    logger.info(f"Sampled {len(result)} places from {len(stratum_counts)} strata (target: {n})")
+    if len(result) > n:
+        result = result.sample(n=n, random_state=random_state)
+    print(f"Sampled {len(result)} places from {len(stratum_counts)} strata (target: {n})")
     return result
 
 
@@ -67,14 +70,17 @@ def build_ground_truth(
     df: pd.DataFrame | None = None,
     sample_n: int = 750,
     provider: str = "openai",
+    model: str = "gpt-4o-mini",
+    mapbox_key: str | None = None,
     google_maps_key: str | None = None,
     output_path: Path | None = None,
     max_places: int | None = None,
+    tile_workers: int = 8,
 ) -> pd.DataFrame:
     """
     Full ground truth construction pipeline:
     1. Stratified sample
-    2. Fetch satellite tiles
+    2. Fetch satellite tiles (parallel)
     3. LLM vision annotation
     4. Save results
 
@@ -82,47 +88,99 @@ def build_ground_truth(
         df: Input DataFrame (loads from parquet if None)
         sample_n: Number of places to sample
         provider: LLM provider ("openai" or "anthropic")
-        google_maps_key: Google Maps API key for satellite tiles
+        model: Model name — "gpt-4o-mini" (cheap) or "gpt-4o" (best quality)
+        mapbox_key: Mapbox API key for satellite tiles
+        google_maps_key: Google Maps API key (best quality tiles)
         output_path: Where to save results
         max_places: Limit processing (for testing)
+        tile_workers: Number of parallel threads for tile fetching
     """
+    import os
     if df is None:
         df = load_places()
 
     output_path = output_path or (PROCESSED_DIR / "ground_truth.parquet")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Step 1: Stratified sample
+    # Step 1: Stratified sample — hard cap at 750
+    sample_n = min(sample_n, 750)
     sample_df = stratified_sample(df, n=sample_n)
     if max_places:
         sample_df = sample_df.head(max_places)
 
-    # Step 2: Fetch satellite tiles
-    fetcher = GoogleStaticMapFetcher(api_key=google_maps_key)
+    # Step 2: Pick satellite tile fetcher
+    _google_key = google_maps_key or os.environ.get("GOOGLE_MAPS_API_KEY")
+    _mapbox_key = mapbox_key or os.environ.get("MAPBOX_API_KEY")
+    if _google_key:
+        fetcher = GoogleStaticMapFetcher(api_key=_google_key)
+        logger.info("Using Google Maps for satellite tiles")
+    elif _mapbox_key:
+        fetcher = MapboxStaticFetcher(api_key=_mapbox_key)
+        logger.info("Using Mapbox for satellite tiles")
+    else:
+        fetcher = ESRIStaticFetcher()
+        logger.info("Using ESRI World Imagery for satellite tiles (no key required)")
+
+    # Step 3: Fetch all tiles in parallel
+    print(f"Fetching {len(sample_df)} tiles with {tile_workers} workers...")
+    tile_map: dict[str, Path] = {}
+
+    def _fetch(row):
+        path = fetcher.fetch_tile(row["lat"], row["lon"], row["id"])
+        return row["id"], path
+
+    n_tiles = len(sample_df)
+    with ThreadPoolExecutor(max_workers=tile_workers) as pool:
+        futures = {pool.submit(_fetch, row): row["id"]
+                   for _, row in sample_df.iterrows()}
+        for i, future in enumerate(as_completed(futures), 1):
+            place_id, path = future.result()
+            if path:
+                tile_map[place_id] = path
+                print(f"  [TILE {i}/{n_tiles}] {place_id} ✓")
+            else:
+                print(f"  [TILE {i}/{n_tiles}] {place_id} FAILED")
+
+    print(f"Tiles ready: {len(tile_map)}/{len(sample_df)}")
+
+    # Step 4: LLM annotation (sequential to respect rate limits)
+    columns = ["id", "name", "category_primary", "region", "current_lat", "current_lon",
+               "gt_lat", "gt_lon", "gt_confidence", "gt_reasoning", "gt_model",
+               "full_address", "offset_haversine_m", "offset_euclidean_m", "offset_manhattan_m"]
+    csv_path = output_path.with_suffix(".csv")
 
     results = []
-    for idx, row in sample_df.iterrows():
-        place_id = row["id"]
-        logger.info(f"Processing {place_id}: {row['name']} ({row['category_primary']})")
+    n_total = len([r for _, r in sample_df.iterrows() if r["id"] in tile_map])
+    annotated = 0
 
-        # Fetch tile
-        tile_path = fetcher.fetch_tile(row["lat"], row["lon"], place_id)
+    for idx, (_, row) in enumerate(sample_df.iterrows()):
+        place_id = row["id"]
+        tile_path = tile_map.get(place_id)
         if tile_path is None:
-            logger.warning(f"Skipping {place_id}: no tile fetched")
             continue
 
-        # Step 3: LLM annotation
-        annotation = annotate_place(
-            image_path=tile_path,
-            name=row["name"] or "Unknown",
-            category=row["category_primary"] or "place",
-            address=row["full_address"],
-            lat_center=row["lat"],
-            lon_center=row["lon"],
-            provider=provider,
-        )
+        annotated += 1
+        print(f"[{annotated}/{n_total}] {row['name']} ({row['category_primary']}, {row['region']})")
 
-        results.append({
+        try:
+            annotation = annotate_place(
+                image_path=tile_path,
+                name=row["name"] or "Unknown",
+                category=row["category_primary"] or "place",
+                address=row["full_address"],
+                lat_center=row["lat"],
+                lon_center=row["lon"],
+                provider=provider,
+                model=model,
+            )
+        except Exception as e:
+            print(f"  [ERROR] Annotation failed: {e}")
+            continue
+
+        if annotation.gt_lat is None:
+            print(f"  [WARN] No coordinates returned: {annotation.reasoning}")
+
+        record = {
             "id": place_id,
             "name": row["name"],
             "category_primary": row["category_primary"],
@@ -135,20 +193,37 @@ def build_ground_truth(
             "gt_reasoning": annotation.reasoning,
             "gt_model": annotation.model,
             "full_address": row["full_address"],
-        })
+            "offset_haversine_m": None,
+            "offset_euclidean_m": None,
+            "offset_manhattan_m": None,
+        }
 
-    result_df = pd.DataFrame(results)
+        if annotation.gt_lat is not None and annotation.gt_lon is not None:
+            for fn, col in [
+                (haversine_meters,  "offset_haversine_m"),
+                (euclidean_meters,  "offset_euclidean_m"),
+                (manhattan_meters,  "offset_manhattan_m"),
+            ]:
+                record[col] = fn(row["lat"], row["lon"], annotation.gt_lat, annotation.gt_lon)
 
-    # Compute offset
-    valid = result_df.dropna(subset=["gt_lat", "gt_lon"])
-    if len(valid) > 0:
-        result_df.loc[valid.index, "offset_m"] = valid.apply(
-            lambda r: haversine_meters(r["current_lat"], r["current_lon"], r["gt_lat"], r["gt_lon"]),
-            axis=1,
-        )
+        results.append(record)
 
+        # Incremental save after every annotation
+        pd.DataFrame(results, columns=columns).to_csv(csv_path, index=False)
+
+    if not results:
+        print("No places were successfully annotated — check tile fetching and API keys")
+        result_df = pd.DataFrame(columns=columns)
+        result_df.to_parquet(output_path, index=False)
+        return result_df
+
+    result_df = pd.DataFrame(results, columns=columns)
     result_df.to_parquet(output_path, index=False)
-    logger.info(f"Saved {len(result_df)} ground truth records to {output_path}")
+    result_df.to_csv(csv_path, index=False)
+
+    valid = result_df.dropna(subset=["gt_lat", "gt_lon"])
+    print(f"\nDone. Annotated {len(valid)}/{len(result_df)} places with valid coordinates.")
+    print(f"Saved to {output_path} and {csv_path}")
 
     return result_df
 

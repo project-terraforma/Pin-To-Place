@@ -9,13 +9,40 @@ import pandas as pd
 
 
 def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Compute Haversine distance between two points in meters."""
+    """Great-circle distance on a sphere. Most accurate for geographic coordinates."""
     R = 6_371_000
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
+
+
+def euclidean_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Flat-plane (Euclidean) distance in meters.
+    Projects degree differences to meters using a local approximation at the
+    midpoint latitude. Fast and accurate for short distances (< 1km).
+    """
+    mid_lat = radians((lat1 + lat2) / 2)
+    meters_per_deg_lat = 111_320
+    meters_per_deg_lon = 111_320 * cos(mid_lat)
+    dy = (lat2 - lat1) * meters_per_deg_lat
+    dx = (lon2 - lon1) * meters_per_deg_lon
+    return sqrt(dx ** 2 + dy ** 2)
+
+
+def manhattan_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Manhattan (taxicab) distance in meters — sum of north/south and east/west
+    components. Approximates travel distance on a grid street network.
+    """
+    mid_lat = radians((lat1 + lat2) / 2)
+    meters_per_deg_lat = 111_320
+    meters_per_deg_lon = 111_320 * cos(mid_lat)
+    dy = abs(lat2 - lat1) * meters_per_deg_lat
+    dx = abs(lon2 - lon1) * meters_per_deg_lon
+    return dx + dy
 
 
 def compute_offsets(df: pd.DataFrame,

@@ -20,6 +20,6 @@ Surpass the current Project Terraforma precision in geometric place-pin placemen
 
 ### Key Results
 
-1. Reduce median spatial offset error by 20% compared to the current Project Terraforma benchmark across the n=750 ground truth dataset.
+1. Pivot from aggregate error reduction to baseline protection: Maintain the 0.0m median baseline offset while ensuring the candidate ranker's regression rate remains strictly below 1% across all test sets.
 2. Reach a training loss of < 0.05 (normalized MSE) and validation accuracy of > 88% on the Overture Maps dataset.
 3. Successfully integrate the "Quickest Path" feature, ensuring it reduces the calculated "cost of arrival" error by at least 15% in top-3 measured results compared to baseline pin data — measured separately for car-arrival (road-facing entry) and pedestrian-arrival (sidewalk/accessible entry) paths, with LLM satellite annotation enriched to detect visible pedestrian infrastructure (sidewalks, curb cuts, accessible paths) near candidate pin locations.

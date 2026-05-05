@@ -16,6 +16,7 @@ from src.satellite_fetcher import GoogleStaticMapFetcher, MapboxStaticFetcher, E
 from src.llm_annotator import annotate_place
 from src.geocoder import MultiGeocoder
 from src.metrics import haversine_meters, euclidean_meters, manhattan_meters
+from src.features import get_tier
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +145,8 @@ def build_ground_truth(
     print(f"Tiles ready: {len(tile_map)}/{len(sample_df)}")
 
     # Step 4: LLM annotation (sequential to respect rate limits)
-    columns = ["id", "name", "category_primary", "region", "current_lat", "current_lon",
+    columns = ["id", "name", "category_primary", "region", "tier", "tier_label",
+               "current_lat", "current_lon",
                "gt_lat", "gt_lon", "gt_confidence", "gt_reasoning", "gt_model",
                "full_address", "offset_haversine_m", "offset_euclidean_m", "offset_manhattan_m"]
     csv_path = output_path.with_suffix(".csv")
@@ -160,7 +162,8 @@ def build_ground_truth(
             continue
 
         annotated += 1
-        print(f"[{annotated}/{n_total}] {row['name']} ({row['category_primary']}, {row['region']})")
+        tier_int, tier_label = get_tier(row.get("category_primary"))
+        print(f"[{annotated}/{n_total}] {row['name']} ({row['category_primary']}, {row['region']}) [Tier {tier_int}: {tier_label}]")
 
         try:
             annotation = annotate_place(
@@ -172,6 +175,7 @@ def build_ground_truth(
                 lon_center=row["lon"],
                 provider=provider,
                 model=model,
+                tier=tier_int,
             )
         except Exception as e:
             print(f"  [ERROR] Annotation failed: {e}")
@@ -185,6 +189,8 @@ def build_ground_truth(
             "name": row["name"],
             "category_primary": row["category_primary"],
             "region": row["region"],
+            "tier": tier_int,
+            "tier_label": tier_label,
             "current_lat": row["lat"],
             "current_lon": row["lon"],
             "gt_lat": annotation.gt_lat,

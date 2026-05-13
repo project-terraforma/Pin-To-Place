@@ -77,35 +77,53 @@ def build_ground_truth(
     output_path: Path | None = None,
     max_places: int | None = None,
     tile_workers: int = 8,
+    batch_start: int | None = None,
+    batch_end: int | None = None,
 ) -> pd.DataFrame:
     """
     Full ground truth construction pipeline:
-    1. Stratified sample
+    1. Select places (sequential batch or stratified sample)
     2. Fetch satellite tiles (parallel)
     3. LLM vision annotation
     4. Save results
 
     Args:
         df: Input DataFrame (loads from parquet if None)
-        sample_n: Number of places to sample
+        sample_n: Number of places to sample (ignored if batch_start/batch_end set)
         provider: LLM provider ("openai" or "anthropic")
         model: Model name — "gpt-4o-mini" (cheap) or "gpt-4o" (best quality)
         mapbox_key: Mapbox API key for satellite tiles
         google_maps_key: Google Maps API key (best quality tiles)
-        output_path: Where to save results
+        output_path: Where to save results (auto-named from batch range if not set)
         max_places: Limit processing (for testing)
         tile_workers: Number of parallel threads for tile fetching
+        batch_start: Row index to start from (inclusive). Uses sequential slicing, not sampling.
+        batch_end: Row index to end at (exclusive). Output file is named ground_truth_{start}_{end-1}.
     """
     import os
     if df is None:
         df = load_places()
 
-    output_path = output_path or (PROCESSED_DIR / "ground_truth.parquet")
+    # Step 1: Select places — sequential batch or stratified sample
+    if batch_start is not None or batch_end is not None:
+        start = batch_start or 0
+        end = batch_end or len(df)
+        end = min(end, len(df))
+        sample_df = df.iloc[start:end].copy()
+        batch_label = f"{start}_{end - 1}"
+        print(f"Batch mode: rows {start}–{end - 1} ({len(sample_df)} places)")
+        # Auto-name output based on batch range unless caller specified one
+        if output_path is None:
+            output_path = PROCESSED_DIR / f"ground_truth_{batch_label}.parquet"
+    else:
+        sample_n = min(sample_n, 750)
+        sample_df = stratified_sample(df, n=sample_n)
+        batch_label = "sampled"
+        if output_path is None:
+            output_path = PROCESSED_DIR / "ground_truth.parquet"
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Step 1: Stratified sample — hard cap at 750
-    sample_n = min(sample_n, 750)
-    sample_df = stratified_sample(df, n=sample_n)
     if max_places:
         sample_df = sample_df.head(max_places)
 

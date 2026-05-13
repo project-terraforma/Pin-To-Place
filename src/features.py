@@ -27,6 +27,88 @@ CATEGORY_GROUPS = {
 }
 
 
+TIER_MAP: dict[str, int] = {
+    # Tier 1 — Standard Commercial (standalone building, single entrance)
+    "accommodation": 1, "american_restaurant": 1, "antique_store": 1,
+    "appliance_store": 1, "auto_parts_and_supply_store": 1, "bagel_shop": 1,
+    "bakery": 1, "bar": 1, "bar_and_grill_restaurant": 1, "barbecue_restaurant": 1,
+    "bed_and_breakfast": 1, "bicycle_shop": 1, "bike_repair_maintenance": 1,
+    "bookstore": 1, "boutique": 1, "breakfast_and_brunch_restaurant": 1,
+    "bridal_shop": 1, "bubble_tea": 1, "burger_restaurant": 1, "butcher_shop": 1,
+    "cafe": 1, "cannabis_dispensary": 1, "caribbean_restaurant": 1,
+    "chicken_restaurant": 1, "chicken_wings_restaurant": 1, "chinese_restaurant": 1,
+    "clothing_store": 1, "coffee_shop": 1, "convenience_store": 1,
+    "cosmetic_and_beauty_supplies": 1, "cuban_restaurant": 1, "delicatessen": 1,
+    "department_store": 1, "desserts": 1, "diner": 1, "discount_store": 1,
+    "distillery": 1, "donuts": 1, "drugstore": 1, "dry_cleaning": 1,
+    "electronics": 1, "eyewear_and_optician": 1, "fast_food_restaurant": 1,
+    "florist": 1, "flowers_and_gifts_shop": 1, "frozen_yoghurt_shop": 1,
+    "furniture_store": 1, "gift_shop": 1, "grocery_store": 1, "gun_and_ammo": 1,
+    "hardware_store": 1, "hair_supply_stores": 1, "hawaiian_restaurant": 1,
+    "health_food_store": 1, "home_decor": 1, "home_goods_store": 1,
+    "home_improvement_store": 1, "hostel": 1, "hotel": 1,
+    "ice_cream_shop": 1, "indian_restaurant": 1, "inn": 1, "irish_pub": 1,
+    "it_service_and_computer_repair": 1, "italian_restaurant": 1,
+    "japanese_restaurant": 1, "jewelry_store": 1, "korean_restaurant": 1,
+    "laundromat": 1, "liquor_store": 1, "lodge": 1, "lounge": 1,
+    "lumber_store": 1, "mattress_store": 1, "meat_shop": 1, "medical_supply": 1,
+    "mediterranean_restaurant": 1, "mexican_restaurant": 1,
+    "mobile_phone_accessories": 1, "mobile_phone_repair": 1, "mobile_phone_store": 1,
+    "motel": 1, "musical_instrument_store": 1, "nursery_and_gardening": 1,
+    "outdoor_gear": 1, "paint_store": 1, "party_supply": 1, "pawn_shop": 1,
+    "pet_store": 1, "pharmacy": 1, "pizza_restaurant": 1, "pub": 1,
+    "resort": 1, "restaurant": 1, "retail": 1, "sandwich_shop": 1,
+    "seafood_restaurant": 1, "self_storage_facility": 1, "shoe_store": 1,
+    "smoothie_juice_bar": 1, "specialty_grocery_store": 1, "sporting_goods": 1,
+    "sports_bar": 1, "steakhouse": 1, "storage_facility": 1, "supermarket": 1,
+    "sushi_restaurant": 1, "tea_room": 1, "texmex_restaurant": 1,
+    "thai_restaurant": 1, "thrift_store": 1, "tire_shop": 1, "tobacco_shop": 1,
+    "turkish_restaurant": 1, "used_vintage_and_consignment": 1,
+    "vegetarian_restaurant": 1, "vietnamese_restaurant": 1,
+    "vitamins_and_supplements": 1, "wholesale_store": 1, "wine_bar": 1,
+    "winery": 1,
+    # Tier 2 — Multi-Tenant (unit within shared building or complex)
+    "building_supply_store": 2, "child_care_and_day_care": 2,
+    "day_care_preschool": 2, "hot_tubs_and_pools": 2, "laboratory": 2,
+    "rental_kiosks": 2, "shipping_center": 2, "shopping": 2,
+    "shopping_center": 2, "venue_and_event_space": 2,
+    # Tier 3 — Open Spaces (parks, campgrounds, outdoor access points)
+    "cabin": 3, "campground": 3, "cottage": 3, "farmers_market": 3,
+    "food_stand": 3, "food_truck": 3, "funeral_services_and_cemeteries": 3,
+    "holiday_rental_home": 3, "pop_up_shop": 3, "rv_park": 3, "taxidermist": 3,
+    # Tier 4 — No Building (home business, mobile, service-only)
+    "advertising_agency": 4, "bail_bonds_service": 4, "bankruptcy_law": 4,
+    "business_law": 4, "caterer": 4, "commercial_printer": 4,
+    "construction_services": 4, "courier_and_delivery_services": 4,
+    "criminal_defense_law": 4, "data_recovery": 4, "divorce_and_family_law": 4,
+    "employment_agencies": 4, "engineering_services": 4, "event_photography": 4,
+    "event_planning": 4, "food_delivery_service": 4, "garbage_collection_service": 4,
+    "graphic_designer": 4, "immigration_law": 4, "internet_service_provider": 4,
+    "it_consultant": 4, "janitorial_services": 4, "lawyer": 4, "legal_services": 4,
+    "life_coach": 4, "marketing_agency": 4, "notary_public": 4, "online_shop": 4,
+    "personal_injury_law": 4, "pest_control_service": 4, "printing_services": 4,
+    "professional_services": 4, "public_relations": 4, "security_services": 4,
+    "septic_services": 4, "sewing_and_alterations": 4, "shredding_services": 4,
+    "software_development": 4, "telecommunications": 4, "videographer": 4,
+    "web_designer": 4, "wedding_planning": 4, "wills_trusts_and_probate": 4,
+    "writing_service": 4,
+}
+
+TIER_LABELS: dict[int, str] = {
+    1: "standard_commercial",
+    2: "multi_tenant",
+    3: "open_space",
+    4: "no_building",
+}
+
+
+def get_tier(category: str | None) -> tuple[int, str]:
+    """Return (tier_int, tier_label) for a given Overture Maps category_primary.
+    Unknown/unmapped categories default to Tier 1 (standard commercial)."""
+    tier = TIER_MAP.get((category or "").lower().strip(), 1)
+    return tier, TIER_LABELS[tier]
+
+
 def categorize_place(category: str | None) -> str:
     """Map a specific category to a broader group."""
     if not category:

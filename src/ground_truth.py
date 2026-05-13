@@ -16,6 +16,7 @@ from src.satellite_fetcher import GoogleStaticMapFetcher, MapboxStaticFetcher, E
 from src.llm_annotator import annotate_place
 from src.geocoder import MultiGeocoder
 from src.metrics import haversine_meters, euclidean_meters, manhattan_meters
+from src.features import get_tier
 
 logger = logging.getLogger(__name__)
 
@@ -76,35 +77,53 @@ def build_ground_truth(
     output_path: Path | None = None,
     max_places: int | None = None,
     tile_workers: int = 8,
+    batch_start: int | None = None,
+    batch_end: int | None = None,
 ) -> pd.DataFrame:
     """
     Full ground truth construction pipeline:
-    1. Stratified sample
+    1. Select places (sequential batch or stratified sample)
     2. Fetch satellite tiles (parallel)
     3. LLM vision annotation
     4. Save results
 
     Args:
         df: Input DataFrame (loads from parquet if None)
-        sample_n: Number of places to sample
+        sample_n: Number of places to sample (ignored if batch_start/batch_end set)
         provider: LLM provider ("openai" or "anthropic")
         model: Model name — "gpt-4o-mini" (cheap) or "gpt-4o" (best quality)
         mapbox_key: Mapbox API key for satellite tiles
         google_maps_key: Google Maps API key (best quality tiles)
-        output_path: Where to save results
+        output_path: Where to save results (auto-named from batch range if not set)
         max_places: Limit processing (for testing)
         tile_workers: Number of parallel threads for tile fetching
+        batch_start: Row index to start from (inclusive). Uses sequential slicing, not sampling.
+        batch_end: Row index to end at (exclusive). Output file is named ground_truth_{start}_{end-1}.
     """
     import os
     if df is None:
         df = load_places()
 
-    output_path = output_path or (PROCESSED_DIR / "ground_truth.parquet")
+    # Step 1: Select places — sequential batch or stratified sample
+    if batch_start is not None or batch_end is not None:
+        start = batch_start or 0
+        end = batch_end or len(df)
+        end = min(end, len(df))
+        sample_df = df.iloc[start:end].copy()
+        batch_label = f"{start}_{end - 1}"
+        print(f"Batch mode: rows {start}–{end - 1} ({len(sample_df)} places)")
+        # Auto-name output based on batch range unless caller specified one
+        if output_path is None:
+            output_path = PROCESSED_DIR / f"ground_truth_{batch_label}.parquet"
+    else:
+        sample_n = min(sample_n, 750)
+        sample_df = stratified_sample(df, n=sample_n)
+        batch_label = "sampled"
+        if output_path is None:
+            output_path = PROCESSED_DIR / "ground_truth.parquet"
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Step 1: Stratified sample — hard cap at 750
-    sample_n = min(sample_n, 750)
-    sample_df = stratified_sample(df, n=sample_n)
     if max_places:
         sample_df = sample_df.head(max_places)
 
@@ -144,7 +163,8 @@ def build_ground_truth(
     print(f"Tiles ready: {len(tile_map)}/{len(sample_df)}")
 
     # Step 4: LLM annotation (sequential to respect rate limits)
-    columns = ["id", "name", "category_primary", "region", "current_lat", "current_lon",
+    columns = ["id", "name", "category_primary", "region", "tier", "tier_label",
+               "current_lat", "current_lon",
                "gt_lat", "gt_lon", "gt_confidence", "gt_reasoning", "gt_model",
                "full_address", "offset_haversine_m", "offset_euclidean_m", "offset_manhattan_m"]
     csv_path = output_path.with_suffix(".csv")
@@ -160,7 +180,8 @@ def build_ground_truth(
             continue
 
         annotated += 1
-        print(f"[{annotated}/{n_total}] {row['name']} ({row['category_primary']}, {row['region']})")
+        tier_int, tier_label = get_tier(row.get("category_primary"))
+        print(f"[{annotated}/{n_total}] {row['name']} ({row['category_primary']}, {row['region']}) [Tier {tier_int}: {tier_label}]")
 
         try:
             annotation = annotate_place(
@@ -172,6 +193,7 @@ def build_ground_truth(
                 lon_center=row["lon"],
                 provider=provider,
                 model=model,
+                tier=tier_int,
             )
         except Exception as e:
             print(f"  [ERROR] Annotation failed: {e}")
@@ -185,6 +207,8 @@ def build_ground_truth(
             "name": row["name"],
             "category_primary": row["category_primary"],
             "region": row["region"],
+            "tier": tier_int,
+            "tier_label": tier_label,
             "current_lat": row["lat"],
             "current_lon": row["lon"],
             "gt_lat": annotation.gt_lat,

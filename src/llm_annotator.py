@@ -11,6 +11,8 @@ import logging
 from pathlib import Path
 from dataclasses import dataclass
 
+from src.features import get_tier
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +42,8 @@ class AnnotationResult:
     raw_response: dict | None = None
 
 
-ANNOTATION_PROMPT = """You are a geospatial analyst determining the correct pin location for a place on a map.
+ANNOTATION_PROMPTS = {
+    1: """You are a geospatial analyst placing a map pin for a {category} business.
 
 ## Place Information
 - **Name:** {name}
@@ -48,27 +51,113 @@ ANNOTATION_PROMPT = """You are a geospatial analyst determining the correct pin 
 - **Address:** {address}
 
 ## Task
-Look at this satellite imagery tile. The red marker shows where the pin is currently placed.
+The red marker shows the current pin. Identify the CORRECT pin location.
 
-Determine the CORRECT location where this place's pin should be. Consider:
-1. For businesses/shops: the main entrance or storefront facing the street
-2. For hotels/resorts: the main lobby entrance
-3. For restaurants/cafes: the primary customer entrance
-4. For parks/campgrounds: the main access point or center of the area
-5. For offices/professional services: the building entrance
+The pin should mark the main customer entrance facing the street — the storefront
+door or lobby entry a visitor on foot would walk to. Do NOT place the pin at the
+building center, parking lot, or side/rear entrance.
 
-## Response Format
-Respond with ONLY a JSON object (no markdown, no explanation outside the JSON):
+Steps:
+1. Find the building matching the address.
+2. Identify the street-facing facade with the primary entrance (look for awnings, signage, door openings).
+3. Place the pin at that entrance, as close to the door as the imagery allows.
+4. If the current pin is already at the entrance, return the center coordinates.
+
+Respond with ONLY this JSON (no markdown):
 {{
-    "pixel_x": <x pixel from left edge of image, 0-{tile_size}>,
-    "pixel_y": <y pixel from top edge of image, 0-{tile_size}>,
+    "pixel_x": <x pixel from left edge, 0-{tile_size}>,
+    "pixel_y": <y pixel from top edge, 0-{tile_size}>,
     "confidence": <0.0 to 1.0>,
-    "reasoning": "<brief explanation of why you chose this location>"
+    "reasoning": "<brief explanation>"
 }}
+Image is {tile_size}x{tile_size} px. Current pin is at center ({center},{center}).""",
 
-The image is {tile_size}x{tile_size} pixels. The current pin is at the center ({center},{center}).
-If you believe the current pin location is already correct, return pixel_x={center}, pixel_y={center}.
-"""
+    2: """You are a geospatial analyst placing a map pin for a {category} located
+inside a shared building or complex (strip mall, office suite, or shopping center).
+
+## Place Information
+- **Name:** {name}
+- **Category:** {category}
+- **Address:** {address}
+
+## Task
+The red marker shows the current pin. Identify the CORRECT pin location.
+
+The pin should mark the specific unit's storefront entrance — NOT the building's
+overall center and NOT the shared parking lot entrance.
+
+Steps:
+1. Identify the multi-tenant building or complex.
+2. Find the specific unit for "{name}" within the building by its address portion.
+3. Place the pin at the visible entrance of that individual unit.
+4. If the current pin is already at the correct unit entrance, return the center coordinates.
+
+Respond with ONLY this JSON (no markdown):
+{{
+    "pixel_x": <x pixel from left edge, 0-{tile_size}>,
+    "pixel_y": <y pixel from top edge, 0-{tile_size}>,
+    "confidence": <0.0 to 1.0>,
+    "reasoning": "<brief explanation>"
+}}
+Image is {tile_size}x{tile_size} px. Current pin is at center ({center},{center}).""",
+
+    3: """You are a geospatial analyst placing a map pin for a {category} — an open
+space, outdoor area, or campground.
+
+## Place Information
+- **Name:** {name}
+- **Category:** {category}
+- **Address:** {address}
+
+## Task
+The red marker shows the current pin. Identify the CORRECT pin location.
+
+For open spaces, the pin should mark the main access point — a parking lot entrance,
+gate, or trailhead where visitors first arrive. If no clear access point exists,
+place the pin at the visual center of the area.
+
+Steps:
+1. Locate the open space or park area.
+2. Look for a parking lot entrance, gate, or road entry serving as the main access.
+3. If multiple access points exist, choose the most prominent.
+4. If no access point is identifiable, use area center.
+
+Respond with ONLY this JSON (no markdown):
+{{
+    "pixel_x": <x pixel from left edge, 0-{tile_size}>,
+    "pixel_y": <y pixel from top edge, 0-{tile_size}>,
+    "confidence": <0.0 to 1.0>,
+    "reasoning": "<brief explanation>"
+}}
+Image is {tile_size}x{tile_size} px. Current pin is at center ({center},{center}).""",
+
+    4: """You are a geospatial analyst placing a map pin for a {category} that has
+no dedicated physical building (home business, mobile service, or address-only entry).
+
+## Place Information
+- **Name:** {name}
+- **Category:** {category}
+- **Address:** {address}
+
+## Task
+The red marker shows the current pin.
+
+Steps:
+1. Check whether a visible standalone commercial building exists at this address.
+2. If yes (clear storefront/commercial structure), place the pin at the entrance as
+   you would for a standard commercial place.
+3. If no dedicated commercial structure is visible (residential building, empty lot,
+   or home-based business), return the center coordinates and set confidence below 0.4.
+
+Respond with ONLY this JSON (no markdown):
+{{
+    "pixel_x": <x pixel from left edge, 0-{tile_size}>,
+    "pixel_y": <y pixel from top edge, 0-{tile_size}>,
+    "confidence": <0.0 to 1.0>,
+    "reasoning": "<brief explanation>"
+}}
+Image is {tile_size}x{tile_size} px. Current pin is at center ({center},{center}).""",
+}
 
 
 def _encode_image(image_path: Path) -> str:
@@ -78,7 +167,7 @@ def _encode_image(image_path: Path) -> str:
 
 def annotate_with_openai(image_path: Path, name: str, category: str,
                           address: str, tile_size: int = 640,
-                          model: str = "gpt-4o") -> AnnotationResult:
+                          model: str = "gpt-4o", tier: int = 1) -> AnnotationResult:
     """Use OpenAI's vision API to annotate a place."""
     try:
         from openai import OpenAI
@@ -88,7 +177,7 @@ def annotate_with_openai(image_path: Path, name: str, category: str,
 
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
     center = tile_size // 2
-    prompt = ANNOTATION_PROMPT.format(
+    prompt = ANNOTATION_PROMPTS[tier].format(
         name=name, category=category, address=address,
         tile_size=tile_size, center=center,
     )
@@ -137,7 +226,7 @@ def annotate_with_openai(image_path: Path, name: str, category: str,
 
 def annotate_with_anthropic(image_path: Path, name: str, category: str,
                              address: str, tile_size: int = 640,
-                             model: str = "claude-sonnet-4-6") -> AnnotationResult:
+                             model: str = "claude-sonnet-4-6", tier: int = 1) -> AnnotationResult:
     """Use Anthropic's vision API to annotate a place."""
     try:
         from anthropic import Anthropic
@@ -147,7 +236,7 @@ def annotate_with_anthropic(image_path: Path, name: str, category: str,
 
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
     center = tile_size // 2
-    prompt = ANNOTATION_PROMPT.format(
+    prompt = ANNOTATION_PROMPTS[tier].format(
         name=name, category=category, address=address,
         tile_size=tile_size, center=center,
     )
@@ -197,17 +286,22 @@ def annotate_place(image_path: Path, name: str, category: str, address: str,
                    lat_center: float, lon_center: float,
                    tile_size: int = 640, zoom: int = 18,
                    provider: str = "openai",
-                   model: str | None = None) -> AnnotationResult:
+                   model: str | None = None,
+                   tier: int | None = None) -> AnnotationResult:
     """
     Full annotation pipeline: get LLM pixel prediction, convert to lat/lon.
     model overrides the default for the chosen provider.
+    tier: 1-4 per taxonomy; if None, auto-derived from category.
     """
+    if tier is None:
+        tier, _ = get_tier(category)
+
     if provider == "openai":
         result = annotate_with_openai(image_path, name, category, address, tile_size,
-                                      model=model or "gpt-4o-mini")
+                                      model=model or "gpt-4o-mini", tier=tier)
     elif provider == "anthropic":
         result = annotate_with_anthropic(image_path, name, category, address, tile_size,
-                                         model=model or "claude-sonnet-4-6")
+                                         model=model or "claude-sonnet-4-6", tier=tier)
     else:
         raise ValueError(f"Unknown provider: {provider}")
 

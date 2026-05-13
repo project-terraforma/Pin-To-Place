@@ -14,13 +14,12 @@ from dataclasses import dataclass
 import pandas as pd
 
 from src.metrics import haversine_meters
+from src.features import get_tier
 
 logger = logging.getLogger(__name__)
 
 
-REPOSITION_PROMPT = """You are a geospatial expert repositioning a place pin on a map for maximum accuracy.
-
-## Place Information
+_REPOSITION_SHARED = """## Place Information
 - **Name:** {name}
 - **Category:** {category}
 - **Address:** {address}
@@ -30,20 +29,7 @@ REPOSITION_PROMPT = """You are a geospatial expert repositioning a place pin on 
 ## Geocoded Positions
 {geocode_info}
 
-## Task
-Look at this satellite imagery tile. The red marker shows the CURRENT pin position.
-
-Your job is to determine the BEST position for this place's pin. Reason step-by-step:
-
-1. **Identify the building** — Which structure in the image matches this place?
-2. **Consider the place type** — For a {category}:
-   - If it's a restaurant/shop: pin should be near the customer entrance facing the street
-   - If it's a hotel/resort: pin should be at the main lobby entrance
-   - If it's an office/professional service: pin at the building entrance
-   - If it's a park/campground: pin at the main access point or center
-   - If it's in a strip mall or multi-tenant building: pin at the specific unit's entrance
-3. **Evaluate the current pin** — Is it already well-placed, or should it move?
-4. **Consider the geocoded positions** — Do they agree? Which seems most accurate?
+{tier_task}
 
 ## Response Format
 Respond with ONLY a JSON object:
@@ -56,8 +42,52 @@ Respond with ONLY a JSON object:
     "estimated_improvement_m": <estimated meters of improvement, 0 if should not move>
 }}
 
-Image is {tile_size}x{tile_size} pixels. Current pin is at center ({center},{center}).
-"""
+Image is {tile_size}x{tile_size} pixels. Current pin is at center ({center},{center})."""
+
+_REPOSITION_TIER_TASKS = {
+    1: """## Task — Standard Commercial Place
+You are a geospatial expert repositioning a pin for a {category} business.
+Look at the satellite tile. The red marker shows the CURRENT pin.
+
+1. Identify which building matches this place.
+2. Find the main customer entrance facing the street (awnings, signage, doorway).
+3. Evaluate whether the current pin is already at the entrance.
+4. Consider whether geocoded positions confirm the building identity.
+
+The ideal pin is at the street-facing storefront door — not the building center or parking lot.""",
+
+    2: """## Task — Multi-Tenant Building
+You are a geospatial expert repositioning a pin for a {category} in a shared building.
+Look at the satellite tile. The red marker shows the CURRENT pin.
+
+1. Identify the multi-tenant building (strip mall, office suite, shopping center).
+2. Find the specific unit for this place within the building.
+3. Pin should be at the individual unit's entrance — NOT the building center or shared parking entry.
+4. Use geocoded positions to help identify the unit's address portion.""",
+
+    3: """## Task — Open Space / Outdoor Area
+You are a geospatial expert repositioning a pin for a {category} open space.
+Look at the satellite tile. The red marker shows the CURRENT pin.
+
+1. Identify the open space or park boundary.
+2. Find the main access point: parking lot entrance, gate, or trailhead.
+3. If no clear access point is visible, use the area's visual center.
+4. Do not place the pin inside a building unless it is the main visitor entry structure.""",
+
+    4: """## Task — No Dedicated Building
+You are a geospatial expert repositioning a pin for a {category} with no dedicated building.
+Look at the satellite tile. The red marker shows the CURRENT pin.
+
+1. Check whether a visible standalone commercial structure exists at this address.
+2. If yes, pin at the entrance (treat as Tier 1).
+3. If no commercial building is visible, the current pin is likely the best estimate —
+   set should_move=false and confidence below 0.4.""",
+}
+
+
+def _build_reposition_prompt(tier: int, **kwargs) -> str:
+    tier_task = _REPOSITION_TIER_TASKS[tier].format(**kwargs)
+    return _REPOSITION_SHARED.format(tier_task=tier_task, **kwargs)
 
 
 def _encode_image(path: Path) -> str:
@@ -80,7 +110,7 @@ def reposition_single_openai(
     confidence: float, source_count: int,
     geocode_info: str, lat_center: float, lon_center: float,
     tile_size: int = 640, zoom: int = 18,
-    model: str = "gpt-4o",
+    model: str = "gpt-4o", tier: int = 1,
 ) -> RepositionResult:
     """Reposition a single place using OpenAI vision."""
     try:
@@ -90,8 +120,8 @@ def reposition_single_openai(
 
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
     center = tile_size // 2
-    prompt = REPOSITION_PROMPT.format(
-        name=name, category=category, address=address,
+    prompt = _build_reposition_prompt(
+        tier, name=name, category=category, address=address,
         confidence=confidence, source_count=source_count,
         geocode_info=geocode_info, tile_size=tile_size, center=center,
     )
@@ -143,7 +173,7 @@ def reposition_single_anthropic(
     confidence: float, source_count: int,
     geocode_info: str, lat_center: float, lon_center: float,
     tile_size: int = 640, zoom: int = 18,
-    model: str = "claude-sonnet-4-6",
+    model: str = "claude-sonnet-4-6", tier: int = 1,
 ) -> RepositionResult:
     """Reposition a single place using Anthropic vision."""
     try:
@@ -153,8 +183,8 @@ def reposition_single_anthropic(
 
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
     center = tile_size // 2
-    prompt = REPOSITION_PROMPT.format(
-        name=name, category=category, address=address,
+    prompt = _build_reposition_prompt(
+        tier, name=name, category=category, address=address,
         confidence=confidence, source_count=source_count,
         geocode_info=geocode_info, tile_size=tile_size, center=center,
     )
@@ -241,6 +271,12 @@ def reposition_with_llm(
         reposition_fn = (reposition_single_openai if provider == "openai"
                          else reposition_single_anthropic)
 
+        # Use tier from ground truth if available, otherwise derive from category
+        if "tier" in row and row["tier"] is not None:
+            tier = int(row["tier"])
+        else:
+            tier, _ = get_tier(row.get("category_primary"))
+
         result = reposition_fn(
             image_path=tile_path,
             name=row.get("name") or "Unknown",
@@ -251,6 +287,7 @@ def reposition_with_llm(
             geocode_info=geocode_info,
             lat_center=row["lat"],
             lon_center=row["lon"],
+            tier=tier,
         )
         result.place_id = place_id
 

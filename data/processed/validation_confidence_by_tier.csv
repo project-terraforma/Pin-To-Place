@@ -1,0 +1,17 @@
+batch,tier_label,n,mean,min,median,max
+ground_truth_0_999,multi_tenant,57,0.942,0.0,1.0,1.0
+ground_truth_0_999,no_building,169,0.298,0.2,0.3,0.3
+ground_truth_0_999,open_space,40,0.822,0.0,0.8,0.9
+ground_truth_0_999,standard_commercial,734,0.957,0.0,1.0,1.0
+ground_truth_1000_1999,multi_tenant,62,0.958,0.0,1.0,1.0
+ground_truth_1000_1999,no_building,186,0.3,0.2,0.3,0.4
+ground_truth_1000_1999,open_space,22,0.841,0.8,0.8,0.9
+ground_truth_1000_1999,standard_commercial,730,0.961,0.0,1.0,1.0
+ground_truth_2000_2999,multi_tenant,29,0.941,0.0,1.0,1.0
+ground_truth_2000_2999,no_building,274,0.299,0.2,0.3,0.3
+ground_truth_2000_2999,open_space,95,0.826,0.2,0.8,0.9
+ground_truth_2000_2999,standard_commercial,602,0.958,0.0,1.0,1.0
+ground_truth_3000_3424,multi_tenant,15,0.993,0.9,1.0,1.0
+ground_truth_3000_3424,no_building,117,0.302,0.3,0.3,0.5
+ground_truth_3000_3424,open_space,52,0.838,0.8,0.8,0.9
+ground_truth_3000_3424,standard_commercial,241,0.956,0.0,1.0,1.0

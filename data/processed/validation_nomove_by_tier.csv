@@ -1,0 +1,17 @@
+batch,tier_label,n,no_move_count,no_move_pct
+ground_truth_0_999,multi_tenant,57,56,98.2
+ground_truth_0_999,no_building,169,169,100.0
+ground_truth_0_999,open_space,40,24,60.0
+ground_truth_0_999,standard_commercial,734,554,75.5
+ground_truth_1000_1999,multi_tenant,62,57,91.9
+ground_truth_1000_1999,no_building,186,186,100.0
+ground_truth_1000_1999,open_space,22,14,63.6
+ground_truth_1000_1999,standard_commercial,730,522,71.5
+ground_truth_2000_2999,multi_tenant,29,25,86.2
+ground_truth_2000_2999,no_building,274,274,100.0
+ground_truth_2000_2999,open_space,95,43,45.3
+ground_truth_2000_2999,standard_commercial,602,456,75.7
+ground_truth_3000_3424,multi_tenant,15,14,93.3
+ground_truth_3000_3424,no_building,117,117,100.0
+ground_truth_3000_3424,open_space,52,20,38.5
+ground_truth_3000_3424,standard_commercial,241,196,81.3

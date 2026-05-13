@@ -1,0 +1,65 @@
+batch,tier,tier_label,keyword,pct_present,n
+ground_truth_0_999,1,standard_commercial,entrance,100.0,734
+ground_truth_0_999,1,standard_commercial,storefront,47.5,734
+ground_truth_0_999,1,standard_commercial,door,55.4,734
+ground_truth_0_999,1,standard_commercial,facade,25.7,734
+ground_truth_0_999,2,multi_tenant,unit,94.7,57
+ground_truth_0_999,2,multi_tenant,suite,0.0,57
+ground_truth_0_999,2,multi_tenant,tenant,5.3,57
+ground_truth_0_999,2,multi_tenant,strip,0.0,57
+ground_truth_0_999,3,open_space,access,97.5,40
+ground_truth_0_999,3,open_space,gate,0.0,40
+ground_truth_0_999,3,open_space,parking,32.5,40
+ground_truth_0_999,3,open_space,trailhead,0.0,40
+ground_truth_0_999,4,no_building,residential,85.8,169
+ground_truth_0_999,4,no_building,no building,0.0,169
+ground_truth_0_999,4,no_building,home,33.1,169
+ground_truth_0_999,4,no_building,no commercial,0.0,169
+ground_truth_1000_1999,1,standard_commercial,entrance,100.0,730
+ground_truth_1000_1999,1,standard_commercial,storefront,45.5,730
+ground_truth_1000_1999,1,standard_commercial,door,57.5,730
+ground_truth_1000_1999,1,standard_commercial,facade,29.3,730
+ground_truth_1000_1999,2,multi_tenant,unit,88.7,62
+ground_truth_1000_1999,2,multi_tenant,suite,0.0,62
+ground_truth_1000_1999,2,multi_tenant,tenant,9.7,62
+ground_truth_1000_1999,2,multi_tenant,strip,0.0,62
+ground_truth_1000_1999,3,open_space,access,100.0,22
+ground_truth_1000_1999,3,open_space,gate,4.5,22
+ground_truth_1000_1999,3,open_space,parking,18.2,22
+ground_truth_1000_1999,3,open_space,trailhead,0.0,22
+ground_truth_1000_1999,4,no_building,residential,81.2,186
+ground_truth_1000_1999,4,no_building,no building,0.0,186
+ground_truth_1000_1999,4,no_building,home,40.3,186
+ground_truth_1000_1999,4,no_building,no commercial,0.0,186
+ground_truth_2000_2999,1,standard_commercial,entrance,100.0,602
+ground_truth_2000_2999,1,standard_commercial,storefront,37.9,602
+ground_truth_2000_2999,1,standard_commercial,door,49.7,602
+ground_truth_2000_2999,1,standard_commercial,facade,29.2,602
+ground_truth_2000_2999,2,multi_tenant,unit,96.6,29
+ground_truth_2000_2999,2,multi_tenant,suite,0.0,29
+ground_truth_2000_2999,2,multi_tenant,tenant,3.4,29
+ground_truth_2000_2999,2,multi_tenant,strip,0.0,29
+ground_truth_2000_2999,3,open_space,access,97.9,95
+ground_truth_2000_2999,3,open_space,gate,6.3,95
+ground_truth_2000_2999,3,open_space,parking,36.8,95
+ground_truth_2000_2999,3,open_space,trailhead,0.0,95
+ground_truth_2000_2999,4,no_building,residential,84.3,274
+ground_truth_2000_2999,4,no_building,no building,0.0,274
+ground_truth_2000_2999,4,no_building,home,32.8,274
+ground_truth_2000_2999,4,no_building,no commercial,0.0,274
+ground_truth_3000_3424,1,standard_commercial,entrance,100.0,241
+ground_truth_3000_3424,1,standard_commercial,storefront,43.6,241
+ground_truth_3000_3424,1,standard_commercial,door,50.2,241
+ground_truth_3000_3424,1,standard_commercial,facade,22.0,241
+ground_truth_3000_3424,2,multi_tenant,unit,100.0,15
+ground_truth_3000_3424,2,multi_tenant,suite,6.7,15
+ground_truth_3000_3424,2,multi_tenant,tenant,6.7,15
+ground_truth_3000_3424,2,multi_tenant,strip,0.0,15
+ground_truth_3000_3424,3,open_space,access,98.1,52
+ground_truth_3000_3424,3,open_space,gate,1.9,52
+ground_truth_3000_3424,3,open_space,parking,44.2,52
+ground_truth_3000_3424,3,open_space,trailhead,0.0,52
+ground_truth_3000_3424,4,no_building,residential,81.2,117
+ground_truth_3000_3424,4,no_building,no building,0.0,117
+ground_truth_3000_3424,4,no_building,home,31.6,117
+ground_truth_3000_3424,4,no_building,no commercial,0.0,117

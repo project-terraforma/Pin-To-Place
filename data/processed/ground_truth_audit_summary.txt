@@ -1,0 +1,29 @@
+Ground Truth Audit Summary
+
+Overall
+{'count': 3425, 'mean_m': np.float64(6.4), 'median_m': np.float64(0.0), 'p90_m': np.float64(37.55), 'p95_m': np.float64(40.27), 'max_m': np.float64(88.56), 'pct_exact_no_move': np.float64(79.6), 'pct_over_10m': np.float64(19.2), 'pct_over_25m': np.float64(14.0), 'pct_over_50m': np.float64(0.1)}
+
+By tier
+ count  mean_m  median_m  p90_m  p95_m  max_m  pct_exact_no_move  pct_over_10m  pct_over_25m  pct_over_50m             segment
+   209   15.88      8.47  39.70  41.17  78.73               48.3          44.0          37.3           0.5          open_space
+  2307    7.87      0.00  38.45  40.85  47.39               74.9          24.1          17.0           0.0 standard_commercial
+   163    2.69      0.00   0.00  33.15  88.56               93.3           6.7           5.5           0.6        multi_tenant
+   746    0.00      0.00   0.00   0.00   0.00              100.0           0.0           0.0           0.0         no_building
+
+By place complexity
+ count  mean_m  median_m  p90_m  p95_m  max_m  pct_exact_no_move  pct_over_10m  pct_over_25m  pct_over_50m      segment
+   303   11.67       0.0  39.05  41.02  46.88               61.7          34.3          26.7           0.0      complex
+  3000    5.86       0.0  37.27  40.20  88.56               81.4          17.7          12.7           0.1       simple
+   122    6.61       0.0  38.24  39.84  43.23               80.3          19.7          14.8           0.0 multi_tenant
+
+By ambiguity
+ count  mean_m  median_m  p90_m  p95_m  max_m  pct_exact_no_move  pct_over_10m  pct_over_25m  pct_over_50m segment
+  2064    7.96       0.0  38.51  40.90  88.56               75.0          23.8          17.4           0.1     low
+   331    5.87       0.0  37.02  39.77  47.39               80.1          19.0          11.8           0.0  medium
+  1030    3.43       0.0  10.12  36.81  46.88               88.7          10.1           7.9           0.0    high
+
+High-offset review rows: 479
+Low-confidence review rows: 777
+Multi-tenant review rows: 163
+Should-move rows: 675
+Zero-offset sample rows: 150

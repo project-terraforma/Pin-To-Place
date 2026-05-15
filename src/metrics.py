@@ -118,6 +118,72 @@ def segmented_report(df: pd.DataFrame, offset_col: str, segment_col: str,
     return result_df
 
 
+
+
+def task_aware_report(df: pd.DataFrame, offset_col: str = "offset_haversine_m") -> dict:
+    """
+    Report metrics that still matter when median offset is already 0.0m.
+    """
+    offsets = df[offset_col].dropna()
+
+    return {
+        "count": len(offsets),
+        "mean_m": round(offsets.mean(), 2),
+        "median_m": round(offsets.median(), 2),
+        "p90_m": round(offsets.quantile(0.90), 2),
+        "p95_m": round(offsets.quantile(0.95), 2),
+        "max_m": round(offsets.max(), 2),
+        "pct_exact_no_move": round((offsets == 0).mean() * 100, 1),
+        "pct_over_10m": round((offsets > 10).mean() * 100, 1),
+        "pct_over_25m": round((offsets > 25).mean() * 100, 1),
+        "pct_over_50m": round((offsets > 50).mean() * 100, 1),
+    }
+
+
+def arrival_cost_score(
+    distance_m: float,
+    sidewalk_visible: bool | None = None,
+    parking_lot_crossing: bool | None = None,
+    barrier_detected: bool | None = None,
+) -> float:
+    """
+    Estimate practical arrival friction, not just geometric distance.
+
+    This is intentionally simple for v1. Later it can be replaced with
+    routing, sidewalk, curb-cut, or road-network features.
+    """
+    score = distance_m
+
+    if sidewalk_visible is False:
+        score += 15
+
+    if parking_lot_crossing:
+        score += 10
+
+    if barrier_detected:
+        score += 50
+
+    return round(score, 2)
+
+
+def segmented_task_report(
+    df: pd.DataFrame,
+    segment_col: str,
+    offset_col: str = "offset_haversine_m",
+) -> pd.DataFrame:
+    """
+    Generate task-aware reports by tier, category, complexity, ambiguity, etc.
+    """
+    rows = []
+
+    for segment, group in df.groupby(segment_col, dropna=False):
+        report = task_aware_report(group, offset_col=offset_col)
+        report["segment"] = segment
+        rows.append(report)
+
+    return pd.DataFrame(rows).sort_values("p95_m", ascending=False)
+
+
 if __name__ == "__main__":
     # Quick unit test for haversine
     # NYC to LA: ~3,944 km

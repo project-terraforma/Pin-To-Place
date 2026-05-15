@@ -261,3 +261,86 @@ def build_training_data(gt_df: pd.DataFrame,
                 f"{labels.sum()} positive, {(~labels.astype(bool)).sum()} negative")
 
     return features_df, labels
+
+
+def place_complexity(row) -> str:
+    """
+    Classify how difficult a place is likely to be for pin placement.
+
+    simple: standalone/single obvious target
+    multi_tenant: suite/unit/shared-building cases
+    complex: large properties, campuses, resorts, plazas, open spaces
+    """
+    category = str(row.get("category_primary", "")).lower()
+    name = str(row.get("name", "")).lower()
+    address = str(row.get("full_address", "")).lower()
+
+    complex_keywords = [
+        "center", "centre", "plaza", "mall", "campus", "resort",
+        "complex", "village", "marketplace", "casino", "park",
+        "fairgrounds", "grounds", "station", "terminal",
+    ]
+
+    if any(keyword in name for keyword in complex_keywords):
+        return "complex"
+
+    if category in {
+        "campground", "resort", "shopping_center", "hospital",
+        "university", "rv_park", "golf_course", "fairgrounds",
+        "airport", "stadium", "theme_park",
+    }:
+        return "complex"
+
+    if "suite" in address or " ste " in address or " unit " in address or "#" in address:
+        return "multi_tenant"
+
+    return "simple"
+
+
+def pin_ambiguity(row) -> str:
+    """
+    Estimate whether a place has one obvious pin or multiple plausible pin targets.
+    """
+    complexity = row.get("place_complexity") or place_complexity(row)
+    tier = row.get("tier_label")
+    category = str(row.get("category_primary", "")).lower()
+
+    if tier == "no_building":
+        return "high"
+
+    if complexity == "complex":
+        return "high"
+
+    if complexity == "multi_tenant":
+        return "medium"
+
+    if category in {"hotel", "resort", "campground", "shopping_center"}:
+        return "medium"
+
+    return "low"
+
+
+def should_move_rule(row) -> bool:
+    """
+    Conservative rule for whether a pin should be considered movable.
+
+    This protects already-good pins and avoids training a model that moves
+    low-confidence or intentionally approximate records.
+    """
+    tier = row.get("tier_label")
+    confidence = row.get("gt_confidence", 0)
+    offset = row.get("offset_haversine_m", 0)
+
+    if tier == "no_building":
+        return False
+
+    if confidence < 0.6:
+        return False
+
+    if offset > 10:
+        return True
+
+    if tier in {"open_space", "multi_tenant"} and offset > 5:
+        return True
+
+    return False

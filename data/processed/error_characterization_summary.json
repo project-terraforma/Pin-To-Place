@@ -1,0 +1,105 @@
+{
+  "failure_mode_counts": {
+    "entrance_mismatch": 2774,
+    "rural_or_sparse_area_risk": 425,
+    "centroid_bias": 361,
+    "multi_tenant_risk": 324,
+    "open_space_ambiguity": 323,
+    "none": 261,
+    "parking_lot_bias": 108,
+    "pedestrian_access_issue": 1
+  },
+  "risk_level_counts": {
+    "medium_risk": 2891,
+    "high_risk": 533,
+    "low_risk": 1
+  },
+  "action_counts": {
+    "keep_original_pin": 2814,
+    "review_manually": 333,
+    "allow_model_correction": 278
+  },
+  "pct_keep_original": 82.16,
+  "pct_allow_correction": 8.12,
+  "pct_review_manually": 9.72,
+  "median_offset_by_category_top20": {
+    "clothing_rental": 43.6,
+    "turkish_restaurant": 43.28,
+    "ip_and_internet_law": 40.98,
+    "forestry_service": 40.44,
+    "candle_store": 39.2,
+    "mediator": 38.82,
+    "candy_store": 38.05,
+    "southern_restaurant": 37.78,
+    "eat_and_drink": 37.27,
+    "pizza_delivery_service": 37.14,
+    "cannabis_dispensary": 37.06,
+    "civil_engineers": 37.02,
+    "mattress_store": 36.52,
+    "pretzels": 36.03,
+    "gold_buyer": 34.81,
+    "campground": 34.65,
+    "breakfast_and_brunch_restaurant": 28.34,
+    "lingerie_store": 20.7,
+    "lounge": 19.87,
+    "bagel_restaurant": 19.0
+  },
+  "highest_risk_examples": [
+    {
+      "id": "08f2ad3c69044aca03c94926717c3b4a",
+      "name": "Redbox",
+      "category_primary": "rental_kiosks",
+      "tier_label": "multi_tenant",
+      "offset_haversine_m": 88.55851499138984,
+      "failure_modes": "centroid_bias|entrance_mismatch|multi_tenant_risk",
+      "risk_level": "high_risk",
+      "action": "review_manually"
+    },
+    {
+      "id": "08f2ad20087595a6033fe3dd7fb34603",
+      "name": "Prestige Funeral Home",
+      "category_primary": "funeral_services_and_cemeteries",
+      "tier_label": "open_space",
+      "offset_haversine_m": 78.72826475255279,
+      "failure_modes": "entrance_mismatch|open_space_ambiguity|parking_lot_bias",
+      "risk_level": "high_risk",
+      "action": "review_manually"
+    },
+    {
+      "id": "08f441e71062870d03e54aec9f981198",
+      "name": "Best Western",
+      "category_primary": "hotel",
+      "tier_label": "standard_commercial",
+      "offset_haversine_m": 47.39342263943842,
+      "failure_modes": "entrance_mismatch",
+      "risk_level": "high_risk",
+      "action": "review_manually"
+    },
+    {
+      "id": "08f44a948aa292e903fed6fd7562ee63",
+      "name": "Courtyard by Marriott Titusville Kennedy Space Center",
+      "category_primary": "hotel",
+      "tier_label": "standard_commercial",
+      "offset_haversine_m": 46.8754710504994,
+      "failure_modes": "entrance_mismatch",
+      "risk_level": "high_risk",
+      "action": "review_manually"
+    },
+    {
+      "id": "08f446c34dd3682c03e52c4d006fbdcd",
+      "name": "Element Houston Vintage Park",
+      "category_primary": "hotel",
+      "tier_label": "standard_commercial",
+      "offset_haversine_m": 46.207724217302086,
+      "failure_modes": "entrance_mismatch",
+      "risk_level": "high_risk",
+      "action": "review_manually"
+    }
+  ],
+  "severity_counts": {
+    "already_accurate": 2727,
+    "moderate_offset": 397,
+    "large_offset": 192,
+    "minor_offset": 109
+  }
+}

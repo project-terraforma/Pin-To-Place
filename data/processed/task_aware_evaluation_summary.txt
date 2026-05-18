@@ -1,0 +1,20 @@
+Task-Aware Evaluation Summary
+
+Baseline geometric offset
+{'count': 3425, 'mean_m': np.float64(6.4), 'median_m': np.float64(0.0), 'p90_m': np.float64(37.55), 'p95_m': np.float64(40.27), 'max_m': np.float64(88.56), 'pct_exact_no_move': np.float64(79.6), 'pct_over_10m': np.float64(19.2), 'pct_over_25m': np.float64(14.0), 'pct_over_50m': np.float64(0.1)}
+
+Arrival-cost score
+{'count': 3425, 'mean_m': np.float64(8.35), 'median_m': np.float64(0.0), 'p90_m': np.float64(38.37), 'p95_m': np.float64(42.61), 'max_m': np.float64(93.73), 'pct_exact_no_move': np.float64(71.4), 'pct_over_10m': np.float64(22.8), 'pct_over_25m': np.float64(15.0), 'pct_over_50m': np.float64(2.8)}
+
+Arrival cost by tier
+ count  mean_m  median_m  p90_m  p95_m  max_m  pct_exact_no_move  pct_over_10m  pct_over_25m  pct_over_50m             segment
+   209   35.91      25.0  63.66  65.44  93.73                0.0         100.0          47.4          36.8          open_space
+  2307    8.82       0.0  38.86  41.43  56.88               68.4          24.3          17.6           0.7 standard_commercial
+   163    4.60       0.0  10.00  33.15  88.56               74.8           6.7           5.5           0.6        multi_tenant
+   746    0.00       0.0   0.00   0.00   0.00              100.0           0.0           0.0           0.0         no_building
+
+Arrival cost by complexity
+ count  mean_m  median_m  p90_m  p95_m  max_m  pct_exact_no_move  pct_over_10m  pct_over_25m  pct_over_50m      segment
+   303   26.31     19.62  61.74  63.98  69.44                6.3          51.5          35.0          21.1      complex
+   122   12.97     10.00  48.24  49.84  53.23               36.9          20.5          18.9           4.9 multi_tenant
+  3000    6.35      0.00  37.45  40.52  93.73               79.4          20.0          12.8           0.8       simple

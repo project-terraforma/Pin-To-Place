@@ -53,6 +53,28 @@ Key pilot rates:
 
 A single place pin is not always sufficient. Some places should move to a more useful entrance or access point, some should not move, some should be treated conservatively for privacy, and some need multiple task-specific pins.
 
+### Multi-Pin Proxy Review Findings
+
+A 21-row multi-pin pilot was created from places marked `manual_needs_multi_pin = true`.
+
+The automated proxy review found:
+
+- `13` rows with pedestrian-entry proxy labels
+- `14` rows with vehicle-entry proxy labels
+- `6` rows with both pedestrian and vehicle proxy labels
+- `16` rows accepted by proxy review
+- `5` rows still requiring human visual review
+
+For rows with both pedestrian and vehicle proxy labels, the distance between arrival targets was substantial:
+
+- mean pedestrian/vehicle separation: `44.3m`
+- median separation: `39.6m`
+- max separation: `88.6m`
+
+This supports the task-aware pinning thesis: for some places, pedestrian and vehicle arrival targets are meaningfully different, so one coordinate may not serve all navigation tasks.
+
+These results are based on proxy labels derived from existing LLM ground truth and current pin positions. They should be treated as workflow validation, not final visual ground truth. The next validation step is human review of the five high-priority rows.
+
 ## 1. Problem Statement
 
 Overture Maps releases a new global map every month, but place pins may not consistently represent the most useful real-world location of a place. A pin could be offset from the building centroid, storefront entrance, rooftop center, or other operationally useful point. Because the "correct" target itself is ambiguous, the project must first define the standard before it can measure error and improve placement quality.

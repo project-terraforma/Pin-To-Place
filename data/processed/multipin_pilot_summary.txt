@@ -1,0 +1,56 @@
+Multi-Pin Pilot Summary
+
+Rows: 21
+
+Purpose
+Rows in this file were marked manual_needs_multi_pin=true during the manual review pilot.
+Fill separate pedestrian, vehicle, delivery, and accessible pin targets where applicable.
+
+tier_label counts
+tier_label
+multi_tenant           10
+open_space              8
+standard_commercial     3
+
+category_primary counts
+category_primary
+rental_kiosks            4
+campground               3
+hot_tubs_and_pools       2
+holiday_rental_home      2
+food_truck               2
+fast_food_restaurant     1
+shopping                 1
+jewelry_store            1
+farmers_market           1
+shipping_center          1
+day_care_preschool       1
+building_supply_store    1
+hearing_aids             1
+
+place_complexity counts
+place_complexity
+simple          15
+complex          3
+multi_tenant     3
+
+pin_ambiguity counts
+pin_ambiguity
+low       15
+high       3
+medium     3
+
+manual_primary_pin_type counts
+manual_primary_pin_type
+pedestrian_entry    13
+vehicle_entry        8
+
+Columns to fill
+pedestrian_entry_lat, pedestrian_entry_lon, pedestrian_entry_confidence, vehicle_entry_lat, vehicle_entry_lon, vehicle_entry_confidence, delivery_entry_lat, delivery_entry_lon, delivery_entry_confidence, accessible_entry_lat, accessible_entry_lon, accessible_entry_confidence, multipin_notes
+
+Guidance
+- pedestrian_entry: storefront, lobby, door, or walking entrance.
+- vehicle_entry: driveway, parking lot entrance, gate, or drop-off access point.
+- delivery_entry: loading/service/delivery access if visible or inferable.
+- accessible_entry: ramp/accessible path/curb-cut connected entrance if visible.
+- leave non-applicable coordinates blank and explain in multipin_notes.

@@ -1,0 +1,39 @@
+Multi-Pin Pilot Analysis Summary
+
+Rows: 21
+
+Pin coverage
+has_pedestrian_entry    13
+has_vehicle_entry       14
+has_delivery_entry       0
+has_accessible_entry     0
+
+Pedestrian/vehicle distance
+count     6.000000
+mean     44.279178
+std      23.400940
+min      18.721384
+25%      36.210102
+50%      39.633220
+75%      42.953054
+max      88.558515
+
+Current to pedestrian
+count    13.000000
+mean     20.436544
+std      27.496081
+min       0.000000
+25%       0.000000
+50%       0.000000
+75%      38.019077
+max      88.558515
+
+Current to vehicle
+count    14.000000
+mean     19.055795
+std      19.879337
+min       0.000000
+25%       0.000000
+50%      16.943882
+75%      38.302682
+max      41.404199

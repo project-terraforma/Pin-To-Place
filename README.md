@@ -4,7 +4,54 @@
 
 **Team:** Aaron J. Yam & Shivani Belambe | Project Terraforma @ UCSC
 
----
+## Current Findings
+
+Pin-To-Place has evolved from a single-coordinate positional accuracy study into a task-aware place pin evaluation framework.
+
+After generating ground truth for all 3,425 Overture place records, the baseline median offset was already `0.0m`. This makes median offset reduction a poor primary success metric. The project now evaluates whether a pin supports the real-world arrival task, using p90/p95 error, regression risk, arrival cost, ambiguity, and manual review outcomes.
+
+### Baseline Findings
+
+- Total records: `3,425`
+- Baseline median offset: `0.0m`
+- Mean offset: `6.4m`
+- p90 offset: `37.55m`
+- p95 offset: `40.27m`
+- Exact no-move rate: `79.6%`
+- Places marked as likely movable: `675`
+
+### Task-Aware Findings
+
+Task-aware evaluation adds `place_complexity`, `pin_ambiguity`, `should_move`, and `arrival_cost_m`.
+
+- Overall arrival-cost p95: `42.61m`
+- Open-space median arrival cost: `25.0m`
+- Open-space p95 arrival cost: `65.44m`
+- Complex-place median arrival cost: `19.62m`
+- Complex-place p95 arrival cost: `63.98m`
+
+Open spaces and complex places are where single-coordinate pinning struggles most.
+
+### Manual Review Pilot
+
+A 118-row manual review pilot was built from high-offset, low-confidence, multi-tenant, and zero-offset control examples.
+
+- `privacy_sensitive`: 38
+- `accepted`: 31
+- `wrong_target`: 28
+- `ambiguous`: 21
+- `should_move = true`: 41
+- `manual_needs_multi_pin = true`: 21
+
+Key pilot rates:
+
+- `34.7%` should move
+- `17.8%` need multiple pins
+- `32.2%` are privacy-sensitive
+
+### Main Insight
+
+A single place pin is not always sufficient. Some places should move to a more useful entrance or access point, some should not move, some should be treated conservatively for privacy, and some need multiple task-specific pins.
 
 ## 1. Problem Statement
 

@@ -184,6 +184,73 @@ def segmented_task_report(
     return pd.DataFrame(rows).sort_values("p95_m", ascending=False)
 
 
+def quickest_path_cost(
+    lat: float,
+    lon: float,
+    gt_lat: float,
+    gt_lon: float,
+    network_type: str = "walk",
+) -> dict:
+    """
+    Compute actual path distance between a pin and its ground-truth location
+    using the OSM road/walk network via osmnx.
+
+    Returns a dict with:
+      walk_m            — shortest network path length in meters
+      straight_line_m   — haversine straight-line distance
+      routing_penalty_m — walk_m minus straight_line_m (extra distance due to
+                          obstacles, parking lots, lack of direct path)
+      method            — 'osmnx' or 'fallback_haversine' with reason
+
+    This replaces the heuristic arrival_cost_score() for OKR 2 KR3.
+    The routing_penalty captures what the heuristic flags as friction: parking lot
+    crossings and missing sidewalks show up as large routing_penalty values.
+    """
+    straight = round(haversine_meters(lat, lon, gt_lat, gt_lon), 2)
+
+    try:
+        import osmnx as ox
+        import networkx as nx
+
+        # Buffer at least 200m around the mid-point so both nodes are reachable
+        mid_lat = (lat + gt_lat) / 2
+        mid_lon = (lon + gt_lon) / 2
+        buffer = max(straight * 2.5, 200)
+
+        G = ox.graph_from_point((mid_lat, mid_lon), dist=buffer, network_type=network_type)
+
+        orig_node = ox.nearest_nodes(G, lon, lat)
+        dest_node = ox.nearest_nodes(G, gt_lon, gt_lat)
+
+        if orig_node == dest_node:
+            return {
+                "walk_m": 0.0,
+                "straight_line_m": straight,
+                "routing_penalty_m": 0.0,
+                "method": "osmnx_same_node",
+            }
+
+        path_length = round(
+            nx.shortest_path_length(G, orig_node, dest_node, weight="length"), 2
+        )
+        routing_penalty = round(max(0.0, path_length - straight), 2)
+
+        return {
+            "walk_m": path_length,
+            "straight_line_m": straight,
+            "routing_penalty_m": routing_penalty,
+            "method": "osmnx",
+        }
+
+    except Exception as e:
+        return {
+            "walk_m": straight,
+            "straight_line_m": straight,
+            "routing_penalty_m": 0.0,
+            "method": f"fallback_haversine ({type(e).__name__})",
+        }
+
+
 if __name__ == "__main__":
     # Quick unit test for haversine
     # NYC to LA: ~3,944 km

@@ -1,0 +1,36 @@
+Manual Review Pilot Autofilled Summary
+
+Rows: 118
+
+Important: these manual_* values are PROVISIONAL and should be checked visually.
+
+Pilot source counts
+pilot_source
+high_offset           40
+low_confidence        30
+multi_tenant          24
+zero_offset_sample    24
+
+manual_review_status counts
+manual_review_status
+privacy_sensitive    38
+ambiguous            37
+wrong_target         27
+accepted             16
+
+manual_should_move counts
+manual_should_move
+false      54
+true       41
+unknown    23
+
+manual_primary_pin_type counts
+manual_primary_pin_type
+pedestrian_entry    56
+current             54
+vehicle_entry        8
+
+manual_needs_multi_pin counts
+manual_needs_multi_pin
+false    81
+true     37

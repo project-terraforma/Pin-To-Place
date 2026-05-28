@@ -1,0 +1,24 @@
+Final Project Checkpoint Summary
+
+Core claim: a single place pin is not always sufficient; the best pin depends on arrival task.
+
+Key numbers
+- Dataset: 3,425 Overture places
+- Baseline median offset: 0.0m
+- Baseline p95 offset: 40.27m
+- Likely movable places: 675
+- Manual review pilot: 118 rows
+- Should move in pilot: 41 / 118 = 34.7%
+- Need multiple pins in pilot: 21 / 118 = 17.8%
+- Privacy-sensitive in pilot: 38 / 118 = 32.2%
+- Multi-pin pilot: 21 rows
+- Mean pedestrian/vehicle proxy separation: 44.3m
+- Median pedestrian/vehicle proxy separation: 39.6m
+- Max pedestrian/vehicle proxy separation: 88.6m
+
+Presentation-ready output files
+- docs/presentation_brief.md
+- docs/recommendation.md
+- data/processed/manual_review_analysis_summary.txt
+- data/processed/multipin_visual_review_summary.txt
+- data/processed/multipin_high_priority_review.csv

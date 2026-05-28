@@ -275,6 +275,10 @@ def place_complexity(row) -> str:
     name = str(row.get("name", "")).lower()
     address = str(row.get("full_address", "")).lower()
 
+    # Unit/suite signals should win before broad complexity labels.
+    if "suite" in address or " ste " in address or " unit " in address or "#" in address:
+        return "multi_tenant"
+
     complex_keywords = [
         "center", "centre", "plaza", "mall", "campus", "resort",
         "complex", "village", "marketplace", "casino", "park",
@@ -290,9 +294,6 @@ def place_complexity(row) -> str:
         "airport", "stadium", "theme_park",
     }:
         return "complex"
-
-    if "suite" in address or " ste " in address or " unit " in address or "#" in address:
-        return "multi_tenant"
 
     return "simple"
 

@@ -1,0 +1,37 @@
+Multi-Pin Visual Proxy Review Summary
+
+Rows: 21
+
+Important
+This is an automated proxy review. It does not replace true visual validation.
+
+visual_review_status counts
+visual_review_status
+proxy_pedestrian_accepted    13
+proxy_vehicle_accepted        8
+
+visual_review_priority counts
+visual_review_priority
+medium    16
+high       5
+
+visual_review_needs_human counts
+visual_review_needs_human
+false    16
+true      5
+
+Pin coverage
+has_pedestrian_entry    13
+has_vehicle_entry       14
+has_delivery_entry       0
+has_accessible_entry     0
+
+Pedestrian/vehicle proxy distance
+count     6.000000
+mean     44.279178
+std      23.400940
+min      18.721384
+25%      36.210102
+50%      39.633220
+75%      42.953054
+max      88.558515

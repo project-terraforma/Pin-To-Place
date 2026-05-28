@@ -1,0 +1,121 @@
+# Presentation Brief
+
+## Project Thesis
+
+A single place pin is not always sufficient. The best pin depends on the arrival task: pedestrian entry, vehicle entry, delivery access, accessible entry, privacy-sensitive approximation, or open-space access point.
+
+## Dataset
+
+- `3,425` Overture Maps place records
+- US-only sample
+- Categories include hotels, professional services, accommodations, campgrounds, restaurants, retail, and service businesses
+- Full LLM-generated ground truth exists for all records
+
+## Baseline Findings
+
+- Baseline median offset: `0.0m`
+- Baseline mean offset: `6.4m`
+- Baseline p90 offset: `37.55m`
+- Baseline p95 offset: `40.27m`
+- Exact no-move rate: `79.6%`
+- Likely movable places: `675`
+
+The median offset being `0.0m` means median improvement is not the right objective. A production system should avoid moving already-good pins and focus on p90/p95 error, arrival cost, ambiguity, and regression safety.
+
+## Task-Aware Evaluation
+
+The project added:
+
+- `place_complexity`
+- `pin_ambiguity`
+- `should_move`
+- `arrival_cost_m`
+
+Arrival-cost findings:
+
+- Overall arrival-cost p95: `42.61m`
+- Open-space median arrival cost: `25.0m`
+- Open-space p95 arrival cost: `65.44m`
+- Complex-place median arrival cost: `19.62m`
+- Complex-place p95 arrival cost: `63.98m`
+
+Open spaces and complex places are where single-coordinate pinning struggles most.
+
+## Manual Review Pilot
+
+A `118`-row pilot was built from high-offset, low-confidence, multi-tenant, and zero-offset control examples.
+
+Review status:
+
+- `privacy_sensitive`: 38
+- `accepted`: 31
+- `wrong_target`: 28
+- `ambiguous`: 21
+
+Movement decision:
+
+- `false`: 69
+- `true`: 41
+- `unknown`: 8
+
+Primary pin type:
+
+- `current`: 69
+- `pedestrian_entry`: 41
+- `vehicle_entry`: 8
+
+Key rates:
+
+- `34.7%` should move
+- `17.8%` need multiple pins
+- `32.2%` are privacy-sensitive
+
+## Multi-Pin Pilot
+
+A `21`-row multi-pin pilot was created from places marked `manual_needs_multi_pin = true`.
+
+Proxy review results:
+
+- `13` rows have pedestrian-entry proxy labels
+- `14` rows have vehicle-entry proxy labels
+- `6` rows have both pedestrian and vehicle proxy labels
+- `16` rows were accepted by proxy review
+- `5` rows remain high-priority for true visual review
+
+For rows with both pedestrian and vehicle proxy labels:
+
+- mean pedestrian/vehicle separation: `44.3m`
+- median separation: `39.6m`
+- max separation: `88.6m`
+
+This supports the core claim that different arrival tasks can require meaningfully different coordinates.
+
+## High-Priority Rows For Future Visual Review
+
+- Pinch A Penny Pool Patio Spa
+- Cafe Rio Fresh Modern Mexican
+- Resae's Pieces of Vintage
+- Redbox, Calabash NC
+- Reeds Jewelers
+
+These are mostly multi-tenant or suite-like cases where pedestrian/storefront and vehicle/current proxies diverge.
+
+## Recommendation
+
+1. Preserve current pins when they are already useful.
+2. Move pins only when there is strong evidence of a better arrival target.
+3. Treat privacy-sensitive and no-building places conservatively.
+4. Use multiple pin targets for ambiguous places where one coordinate is insufficient.
+5. Prioritize open-space, complex, and multi-tenant places for deeper review.
+6. Measure p90/p95 offset, arrival cost, regression rate, manual review status, and multi-pin need rate.
+
+## Limitations
+
+- Multi-pin labels are proxy labels, not final visual ground truth.
+- Delivery and accessible-entry pins were not filled in the pilot because they require clearer visual or street-level evidence.
+- The five high-priority rows still need true visual review.
+- LLM annotations should be treated as candidate labels, not unquestioned truth.
+
+## Next Research Step
+
+Visually validate the five high-priority multi-pin rows, then expand multi-pin labeling selectively into open spaces, hotels, resorts, shopping centers, campgrounds, and other complex places.

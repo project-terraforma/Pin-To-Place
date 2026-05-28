@@ -320,6 +320,82 @@ def pin_ambiguity(row) -> str:
     return "low"
 
 
+SUB_TIER_MAP: dict[str, str] = {
+    # 1a — Drive-up only (car entry only, no meaningful pedestrian approach)
+    "gas_station": "1a", "car_wash": "1a", "auto_repair": "1a",
+    "car_dealer": "1a", "tire_shop": "1a",
+    # 1b — Large standalone (car and pedestrian entries meaningfully far apart)
+    "hotel": "1b", "motel": "1b", "accommodation": "1b", "resort": "1b",
+    "lodge": "1b", "hostel": "1b", "inn": "1b", "bed_and_breakfast": "1b",
+    "department_store": "1b", "grocery_store": "1b", "supermarket": "1b",
+    "wholesale_store": "1b", "home_improvement_store": "1b",
+    "furniture_store": "1b", "self_storage_facility": "1b",
+    # 2a — Strip mall / retail center tenant
+    "shopping_center": "2a", "shopping": "2a",
+    # 2b — Office suite / professional building
+    # Note: professional_services, lawyer, legal_services are Tier 4 in TIER_MAP
+    # (no dedicated building) so they never reach this lookup — omitted intentionally.
+    "dentist": "2b", "doctor": "2b", "health_and_medical": "2b",
+    "day_care_preschool": "2b", "child_care_and_day_care": "2b",
+    "laboratory": "2b", "shipping_center": "2b",
+    # 3a — Bounded outdoor (small area, single access point)
+    "farmers_market": "3a", "food_stand": "3a", "food_truck": "3a",
+    "pop_up_shop": "3a", "funeral_services_and_cemeteries": "3a",
+    # 3b — Large outdoor (campground, rural, extended access zones)
+    "campground": "3b", "rv_park": "3b", "cabin": "3b",
+    "cottage": "3b", "holiday_rental_home": "3b",
+}
+
+SUB_TIER_LABELS: dict[str, str] = {
+    "1a": "drive_up_only",
+    "1b": "large_standalone",
+    "1c": "small_urban_storefront",
+    "2a": "strip_mall_tenant",
+    "2b": "office_suite",
+    "2c": "other_multi_tenant",
+    "3a": "bounded_outdoor",
+    "3b": "large_outdoor",
+    "4":  "no_building",
+}
+
+
+def get_sub_tier(category: str | None, name: str | None = None) -> tuple[str, str]:
+    """Return (sub_tier_code, sub_tier_label) refining the 4-tier hierarchy.
+
+    Sub-tiers encode which pin types to assign and how far apart car/pedestrian
+    entries are expected to be, which drives the dual-label annotation strategy.
+    """
+    tier, _ = get_tier(category)
+    cat = (category or "").lower().strip()
+    name_lower = (name or "").lower()
+
+    if tier == 4:
+        return "4", SUB_TIER_LABELS["4"]
+
+    sub = SUB_TIER_MAP.get(cat)
+    if sub:
+        return sub, SUB_TIER_LABELS[sub]
+
+    if tier == 1:
+        large_keywords = [
+            "hotel", "inn", "lodge", "suites", "resort", "motel",
+            "walmart", "target", "costco", "home depot", "lowe",
+        ]
+        if any(w in name_lower for w in large_keywords):
+            return "1b", SUB_TIER_LABELS["1b"]
+        return "1c", SUB_TIER_LABELS["1c"]
+
+    if tier == 2:
+        return "2c", SUB_TIER_LABELS["2c"]
+
+    if tier == 3:
+        if cat in {"campground", "rv_park", "cabin", "cottage", "holiday_rental_home"}:
+            return "3b", SUB_TIER_LABELS["3b"]
+        return "3a", SUB_TIER_LABELS["3a"]
+
+    return str(tier), f"tier_{tier}"
+
+
 def should_move_rule(row) -> bool:
     """
     Conservative rule for whether a pin should be considered movable.

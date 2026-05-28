@@ -18,7 +18,8 @@ PROCESSED = PROJECT_ROOT / "data" / "processed"
 
 
 def load_ground_truth_batches() -> pd.DataFrame:
-    files = sorted(PROCESSED.glob("ground_truth_*.csv"))
+    files = sorted(f for f in PROCESSED.glob("ground_truth_*.csv")
+                   if f.stem != "ground_truth_combined")
 
     if not files:
         raise FileNotFoundError("No ground_truth_*.csv files found in data/processed")

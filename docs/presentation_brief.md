@@ -14,10 +14,10 @@ A single place pin is not always sufficient. The best pin depends on the arrival
 ## Baseline Findings
 
 - Baseline median offset: `0.0m`
-- Baseline mean offset: `6.4m`
-- Baseline p90 offset: `37.55m`
-- Baseline p95 offset: `40.27m`
-- Exact no-move rate: `79.6%`
+- Baseline mean offset: `2.69m`
+- Baseline p90 offset: `20.02m`
+- Baseline p95 offset: `23.34m`
+- Exact no-move rate: `88.5%`
 - Likely movable places: `675`
 
 The median offset being `0.0m` means median improvement is not the right objective. A production system should avoid moving already-good pins and focus on p90/p95 error, arrival cost, ambiguity, and regression safety.
@@ -33,72 +33,46 @@ The project added:
 
 Arrival-cost findings:
 
-- Overall arrival-cost p95: `42.61m`
-- Open-space median arrival cost: `25.0m`
-- Open-space p95 arrival cost: `65.44m`
-- Complex-place median arrival cost: `19.62m`
-- Complex-place p95 arrival cost: `63.98m`
+- Overall arrival-cost p95: `25.34m`
+- Open-space median arrival cost: `25.0m`; 100% of open-space places exceed 10m arrival cost
+- Open-space p95 arrival cost: `48.34m`
+- Complex-place median arrival cost: `10.0m`
+- Complex-place p95 arrival cost: `47.91m`
 
 Open spaces and complex places are where single-coordinate pinning struggles most.
 
 ## Manual Review Pilot
 
-A `118`-row pilot was built from high-offset, low-confidence, multi-tenant, and zero-offset control examples.
+A `103`-row pilot was built from high-offset, low-confidence, multi-tenant, and zero-offset control examples (23 / 30 / 25 / 25 respectively).
 
-Review status:
+Tier breakdown: 36 no-building, 35 standard-commercial, 26 multi-tenant, 6 open-space.
 
-- `privacy_sensitive`: 38
-- `accepted`: 31
-- `wrong_target`: 28
-- `ambiguous`: 21
+Automated evaluation flags: 23 rows `should_move = true`, 9 rows flagged for multi-pin review.
 
-Movement decision:
-
-- `false`: 69
-- `true`: 41
-- `unknown`: 8
-
-Primary pin type:
-
-- `current`: 69
-- `pedestrian_entry`: 41
-- `vehicle_entry`: 8
-
-Key rates:
-
-- `34.7%` should move
-- `17.8%` need multiple pins
-- `32.2%` are privacy-sensitive
+Human labels (`manual_review_status`, `manual_should_move`, `manual_primary_pin_type`) are not yet filled — the pilot is ready for visual review.
 
 ## Multi-Pin Pilot
 
-A `21`-row multi-pin pilot was created from places marked `manual_needs_multi_pin = true`.
+A `9`-row multi-pin pilot was created from places flagged `manual_needs_multi_pin = true` (5 open-space/RV parks, 2 multi-tenant complexes, 2 multi-tenant standard commercial).
 
 Proxy review results:
 
-- `13` rows have pedestrian-entry proxy labels
-- `14` rows have vehicle-entry proxy labels
-- `6` rows have both pedestrian and vehicle proxy labels
-- `16` rows were accepted by proxy review
-- `5` rows remain high-priority for true visual review
+- `4` rows have pedestrian-entry proxy labels (`proxy_pedestrian_accepted`)
+- `0` rows have vehicle-entry proxy labels (not yet labeled)
+- `5` rows flagged `needs_human_review` (high priority)
+- `4` rows accepted by proxy review (medium priority)
 
-For rows with both pedestrian and vehicle proxy labels:
+Pedestrian/vehicle separation cannot yet be computed — vehicle-entry coordinates need to be added for the 9 pilot rows.
 
-- mean pedestrian/vehicle separation: `44.3m`
-- median separation: `39.6m`
-- max separation: `88.6m`
+## High-Priority Rows For Visual Review
 
-This supports the core claim that different arrival tasks can require meaningfully different coordinates.
+- Chateau Burg RV Resort
+- D'Iberville Memorial Park
+- Arrowhead RV Park
+- Plantation Place Dallas RV Park
+- Winn Creek RV Park
 
-## High-Priority Rows For Future Visual Review
-
-- Pinch A Penny Pool Patio Spa
-- Cafe Rio Fresh Modern Mexican
-- Resae's Pieces of Vintage
-- Redbox, Calabash NC
-- Reeds Jewelers
-
-These are mostly multi-tenant or suite-like cases where pedestrian/storefront and vehicle/current proxies diverge.
+These are open-space/RV park places where pedestrian and vehicle arrival targets are likely to be meaningfully separated but cannot be confirmed without satellite or street-level imagery.
 
 ## Recommendation
 
@@ -118,4 +92,7 @@ These are mostly multi-tenant or suite-like cases where pedestrian/storefront an
 
 ## Next Research Step
 
-Visually validate the five high-priority multi-pin rows, then expand multi-pin labeling selectively into open spaces, hotels, resorts, shopping centers, campgrounds, and other complex places.
+1. Fill human labels into `manual_review_pilot.csv` (103 rows).
+2. Add vehicle-entry coordinates for the 9 multi-pin pilot rows to enable pedestrian/vehicle separation measurement.
+3. Visually validate the five high-priority open-space rows.
+4. Once human labels exist, train a regression-safe `should_move` classifier and expand selectively into open spaces, hotels, resorts, shopping centers, and campgrounds.

@@ -1,56 +1,297 @@
-Multi-Pin Pilot Summary
+Multi-Pin Dataset Summary
 
-Rows: 21
+Rows: 2463
 
-Purpose
-Rows in this file were marked manual_needs_multi_pin=true during the manual review pilot.
-Fill separate pedestrian, vehicle, delivery, and accessible pin targets where applicable.
+Source: ground_truth_combined.csv — rows with both car_entry and pedestrian_entry
+from the dual-annotation pipeline. No manual coordinate entry required.
+
+Car/pedestrian separation distance (m)
+count    2463.000000
+mean       21.535378
+std        19.712780
+min         0.000000
+25%         0.000000
+50%        20.884193
+75%        28.510951
+max       118.515648
+pct separation >= 10m:  70.8%
+pct separation >= 25m:  28.0%
+pct separation >= 50m:  9.3%
 
 tier_label counts
 tier_label
-multi_tenant           10
-open_space              8
-standard_commercial     3
-
-category_primary counts
-category_primary
-rental_kiosks            4
-campground               3
-hot_tubs_and_pools       2
-holiday_rental_home      2
-food_truck               2
-fast_food_restaurant     1
-shopping                 1
-jewelry_store            1
-farmers_market           1
-shipping_center          1
-day_care_preschool       1
-building_supply_store    1
-hearing_aids             1
+standard_commercial    2300
+multi_tenant            163
 
 place_complexity counts
 place_complexity
-simple          15
-complex          3
-multi_tenant     3
+simple          2213
+complex          174
+multi_tenant      76
 
-pin_ambiguity counts
-pin_ambiguity
-low       15
-high       3
-medium     3
+category_primary counts
+category_primary
+hotel                               285
+accommodation                        86
+fast_food_restaurant                 59
+pizza_restaurant                     57
+convenience_store                    55
+resort                               55
+self_storage_facility                53
+mexican_restaurant                   52
+restaurant                           47
+day_care_preschool                   47
+coffee_shop                          43
+shopping                             42
+mobile_phone_store                   41
+american_restaurant                  39
+discount_store                       38
+flowers_and_gifts_shop               37
+bar                                  36
+hardware_store                       35
+grocery_store                        32
+pharmacy                             28
+sandwich_shop                        27
+bakery                               27
+furniture_store                      26
+retail                               25
+storage_facility                     24
+liquor_store                         24
+jewelry_store                        22
+chinese_restaurant                   21
+supermarket                          21
+clothing_store                       20
+chicken_restaurant                   19
+cafe                                 19
+architectural_designer               19
+ice_cream_shop                       18
+shipping_center                      18
+nursery_and_gardening                18
+pub                                  18
+burger_restaurant                    17
+dry_cleaning                         17
+laundromat                           17
+rental_kiosks                        16
+home_improvement_store               16
+it_service_and_computer_repair       16
+sporting_goods                       15
+tobacco_shop                         15
+department_store                     15
+italian_restaurant                   14
+seafood_restaurant                   14
+carpet_store                         13
+thrift_store                         13
+building_supply_store                13
+antique_store                        13
+winery                               12
+arts_and_crafts                      12
+diner                                12
+sign_making                          12
+screen_printing_t_shirt_printing     11
+medical_supply                       11
+shoe_store                           11
+bed_and_breakfast                    11
+electronics                          11
+shopping_center                      11
+musical_instrument_store             11
+auto_parts_and_supply_store          10
+pet_store                            10
+mobile_phone_accessories             10
+machine_shop                         10
+home_goods_store                     10
+wholesale_store                       9
+sushi_restaurant                      9
+cosmetic_and_beauty_supplies          9
+propane_supplier                      9
+japanese_restaurant                   8
+hunting_and_fishing_supplies          8
+fashion_accessories_store             8
+breakfast_and_brunch_restaurant       8
+lodge                                 8
+butcher_shop                          8
+donuts                                7
+steakhouse                            7
+auction_house                         7
+thai_restaurant                       7
+venue_and_event_space                 7
+smoothie_juice_bar                    7
+pawn_shop                             6
+e_cigarette_store                     6
+hearing_aids                          6
+gift_shop                             6
+texmex_restaurant                     6
+fabric_store                          6
+hobby_shop                            6
+video_and_video_game_rentals          6
+hair_supply_stores                    6
+mobile_phone_repair                   6
+paint_store                           5
+desserts                              5
+vitamins_and_supplements              5
+toy_store                             5
+recycling_center                      5
+appraisal_services                    5
+music_and_dvd_store                   5
+outdoor_gear                          5
+delicatessen                          5
+bicycle_shop                          5
+linen                                 5
+salad_bar                             5
+bar_and_grill_restaurant              5
+health_food_store                     4
+appliance_store                       4
+bookstore                             4
+child_care_and_day_care               4
+vietnamese_restaurant                 4
+florist                               4
+boutique                              4
+brewery                               4
+eyewear_and_optician                  4
+lighting_store                        4
+indian_restaurant                     4
+lingerie_store                        4
+mattress_store                        4
+powder_coating_service                4
+barbecue_restaurant                   3
+fruits_and_vegetables                 3
+eat_and_drink                         3
+home_decor                            3
+office_equipment                      3
+bagel_shop                            3
+machine_and_tool_rentals              3
+water_supplier                        3
+wine_bar                              3
+irish_pub                             3
+dj_service                            3
+gun_and_ammo                          3
+home_theater_systems_stores           3
+mediterranean_restaurant              3
+candy_store                           3
+hot_tubs_and_pools                    3
+bubble_tea                            3
+fishmonger                            3
+audio_visual_equipment_store          3
+clothing_rental                       3
+tea_room                              3
+hawaiian_restaurant                   3
+cuban_restaurant                      3
+frozen_yoghurt_shop                   3
+greek_restaurant                      3
+used_vintage_and_consignment          3
+firework_retailer                     2
+inn                                   2
+tapas_bar                             2
+candle_store                          2
+kitchen_supply_store                  2
+pizza_delivery_service                2
+latin_american_restaurant             2
+fashion                               2
+video_game_store                      2
+architect                             2
+sports_bar                            2
+well_drilling                         2
+sandblasting_service                  2
+computer_hardware_company             2
+lounge                                2
+e_commerce_service                    2
+cannabis_dispensary                   2
+wig_store                             2
+korean_restaurant                     2
+party_supply                          2
+video_film_production                 2
+vegetarian_restaurant                 2
+appliance_repair_service              2
+emergency_service                     2
+electricity_supplier                  2
+cocktail_bar                          2
+laboratory                            2
+buffet_restaurant                     2
+middle_eastern_restaurant             2
+shoe_repair                           2
+framing_store                         1
+designer_clothing                     1
+costume_store                         1
+meat_shop                             1
+turkish_restaurant                    1
+specialty_grocery_store               1
+pretzels                              1
+electrical_supply_store               1
+bagel_restaurant                      1
+career_counseling                     1
+shaved_ice_shop                       1
+noodles_restaurant                    1
+beer_garden                           1
+t_shirt_store                         1
+theme_restaurant                      1
+dui_law                               1
+custom_clothing                       1
+bridal_shop                           1
+commercial_refrigeration              1
+newspaper_and_magazines_store         1
+embroidery_and_crochet                1
+superstore                            1
+junk_removal_and_hauling              1
+international_grocery_store           1
+ip_and_internet_law                   1
+distillery                            1
+puerto_rican_restaurant               1
+cemeteries                            1
+drugstore                             1
+stone_and_masonry                     1
+safety_equipment                      1
+peruvian_restaurant                   1
+beer_bar                              1
+business_consulting                   1
+caribbean_restaurant                  1
+environmental_testing                 1
+gold_buyer                            1
+kitchen_and_bath                      1
+audiovisual_equipment_rental          1
+soup_restaurant                       1
+airport_lounge                        1
+comic_books_store                     1
+german_restaurant                     1
+luggage_store                         1
+internet_marketing_service            1
+skate_shop                            1
+party_and_event_planning              1
+woodworking_supply_store              1
+medical_law                           1
+pan_asian_restaurant                  1
+uniform_store                         1
+surf_shop                             1
+hydroponic_gardening                  1
+kosher_restaurant                     1
+forestry_service                      1
+kids_recreation_and_party             1
+inspection_services                   1
+chicken_wings_restaurant              1
+furniture_rental_service              1
+session_photography                   1
+ethiopian_restaurant                  1
+formal_wear_store                     1
+employment_law                        1
+balloon_services                      1
+trophy_shop                           1
+window_treatment_store                1
+lumber_store                          1
+motel                                 1
+popcorn_shop                          1
+flea_market                           1
+fingerprinting_service                1
+private_investigation                 1
+civil_engineers                       1
+watch_store                           1
+boat_storage_facility                 1
+asian_fusion_restaurant               1
+food                                  1
+junkyard                              1
+southern_restaurant                   1
+christmas_trees                       1
+record_label                          1
+mediator                              1
+hostel                                1
+haitian_restaurant                    1
+bike_repair_maintenance               1
+office_cleaning                       1
 
-manual_primary_pin_type counts
-manual_primary_pin_type
-pedestrian_entry    13
-vehicle_entry        8
-
-Columns to fill
-pedestrian_entry_lat, pedestrian_entry_lon, pedestrian_entry_confidence, vehicle_entry_lat, vehicle_entry_lon, vehicle_entry_confidence, delivery_entry_lat, delivery_entry_lon, delivery_entry_confidence, accessible_entry_lat, accessible_entry_lon, accessible_entry_confidence, multipin_notes
-
-Guidance
-- pedestrian_entry: storefront, lobby, door, or walking entrance.
-- vehicle_entry: driveway, parking lot entrance, gate, or drop-off access point.
-- delivery_entry: loading/service/delivery access if visible or inferable.
-- accessible_entry: ramp/accessible path/curb-cut connected entrance if visible.
-- leave non-applicable coordinates blank and explain in multipin_notes.

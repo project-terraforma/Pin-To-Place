@@ -58,8 +58,8 @@ def classify_proxy_review(row) -> dict:
     conf = float(row.get("gt_confidence", 0) or 0)
 
     has_ped = _has_pair(row, "pedestrian_entry_lat", "pedestrian_entry_lon")
-    has_vehicle = _has_pair(row, "vehicle_entry_lat", "vehicle_entry_lon")
-    ped_vehicle_distance = row.get("pedestrian_vehicle_distance_m", np.nan)
+    has_vehicle = _has_pair(row, "car_entry_lat", "car_entry_lon")
+    ped_vehicle_distance = row.get("car_pedestrian_distance_m", np.nan)
 
     result = {
         "visual_review_status": "proxy_reviewed",
@@ -77,13 +77,13 @@ def classify_proxy_review(row) -> dict:
     if tier == "open_space":
         if has_vehicle and conf >= 0.8:
             result["visual_vehicle_entry_correct"] = "likely"
-            result["visual_review_status"] = "proxy_vehicle_accepted"
+            result["visual_review_status"] = "proxy_car_accepted"
             result["visual_review_priority"] = "medium"
-            notes.append("Open-space row uses LLM ground truth as vehicle/main-access proxy.")
+            notes.append("Open-space row uses LLM ground truth as car/main-access proxy.")
         else:
             result["visual_review_status"] = "needs_human_review"
             result["visual_review_priority"] = "high"
-            notes.append("Open-space row lacks a confident vehicle/main-access proxy.")
+            notes.append("Open-space row lacks a confident car/main-access proxy.")
 
         result["visual_pedestrian_entry_correct"] = "unknown"
         notes.append("Pedestrian entry for open-space rows requires imagery.")
@@ -100,15 +100,15 @@ def classify_proxy_review(row) -> dict:
 
         if has_vehicle:
             result["visual_vehicle_entry_correct"] = "weak_proxy"
-            notes.append("Vehicle entry is a weak proxy and needs imagery.")
+            notes.append("Car entry is a weak proxy and needs imagery.")
         else:
             result["visual_vehicle_entry_correct"] = "unknown"
 
-    elif primary == "vehicle_entry":
+    elif primary == "car_entry":
         if has_vehicle and conf >= 0.8:
             result["visual_vehicle_entry_correct"] = "likely"
-            result["visual_review_status"] = "proxy_vehicle_accepted"
-            notes.append("Primary manual pin type is vehicle_entry and proxy exists.")
+            result["visual_review_status"] = "proxy_car_accepted"
+            notes.append("Primary manual pin type is car_entry and proxy exists.")
 
     elif primary == "pedestrian_entry":
         if has_ped and conf >= 0.8:
@@ -148,8 +148,8 @@ def main() -> None:
         lambda r: _map_link(r.get("pedestrian_entry_lat"), r.get("pedestrian_entry_lon")),
         axis=1,
     )
-    df["vehicle_entry_url"] = df.apply(
-        lambda r: _map_link(r.get("vehicle_entry_lat"), r.get("vehicle_entry_lon")),
+    df["car_entry_url"] = df.apply(
+        lambda r: _map_link(r.get("car_entry_lat"), r.get("car_entry_lon")),
         axis=1,
     )
 
@@ -157,8 +157,8 @@ def main() -> None:
         lambda r: _has_pair(r, "pedestrian_entry_lat", "pedestrian_entry_lon"),
         axis=1,
     )
-    df["has_vehicle_entry"] = df.apply(
-        lambda r: _has_pair(r, "vehicle_entry_lat", "vehicle_entry_lon"),
+    df["has_car_entry"] = df.apply(
+        lambda r: _has_pair(r, "car_entry_lat", "car_entry_lon"),
         axis=1,
     )
     df["has_delivery_entry"] = df.apply(
@@ -170,13 +170,13 @@ def main() -> None:
         axis=1,
     )
 
-    df["pedestrian_vehicle_distance_m"] = df.apply(
+    df["car_pedestrian_distance_m"] = df.apply(
         lambda r: _distance(
             r,
             "pedestrian_entry_lat",
             "pedestrian_entry_lon",
-            "vehicle_entry_lat",
-            "vehicle_entry_lon",
+            "car_entry_lat",
+            "car_entry_lon",
         ),
         axis=1,
     )
@@ -199,13 +199,13 @@ def main() -> None:
         "visual_review_needs_human",
         "visual_pedestrian_entry_correct",
         "visual_vehicle_entry_correct",
-        "pedestrian_vehicle_distance_m",
+        "car_pedestrian_distance_m",
         "full_address",
         "google_search_url",
         "current_pin_url",
         "gt_pin_url",
         "pedestrian_entry_url",
-        "vehicle_entry_url",
+        "car_entry_url",
         "visual_notes",
         "multipin_notes",
     ]
@@ -231,10 +231,10 @@ def main() -> None:
         df["visual_review_needs_human"].value_counts(dropna=False).to_string(),
         "",
         "Pin coverage",
-        df[["has_pedestrian_entry", "has_vehicle_entry", "has_delivery_entry", "has_accessible_entry"]].sum().to_string(),
+        df[["has_pedestrian_entry", "has_car_entry", "has_delivery_entry", "has_accessible_entry"]].sum().to_string(),
         "",
-        "Pedestrian/vehicle proxy distance",
-        df["pedestrian_vehicle_distance_m"].describe().to_string(),
+        "Car/pedestrian proxy distance",
+        df["car_pedestrian_distance_m"].describe().to_string(),
     ]
     SUMMARY_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

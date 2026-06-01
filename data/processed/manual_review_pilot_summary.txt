@@ -1,36 +1,43 @@
-Manual Review Pilot Autofilled Summary
+Manual Review Pilot Summary
 
-Rows: 118
-
-Important: these manual_* values are PROVISIONAL and should be checked visually.
+Rows: 103
 
 Pilot source counts
 pilot_source
-high_offset           40
 low_confidence        30
-multi_tenant          24
-zero_offset_sample    24
+multi_tenant          25
+zero_offset_sample    25
+high_offset           23
 
-manual_review_status counts
-manual_review_status
-privacy_sensitive    38
-ambiguous            37
-wrong_target         27
-accepted             16
+Allowed manual_review_status values
+accepted, wrong_target, ambiguous, bad_imagery, privacy_sensitive, needs_more_context
 
-manual_should_move counts
-manual_should_move
-false      54
-true       41
-unknown    23
+Allowed manual_primary_pin_type values
+current, pedestrian_entry, vehicle_entry, delivery_entry, accessible_entry, area_centroid, unknown
 
-manual_primary_pin_type counts
-manual_primary_pin_type
-pedestrian_entry    56
-current             54
-vehicle_entry        8
+Manual columns to fill
+manual_review_status, manual_should_move, manual_primary_pin_type, manual_needs_multi_pin, manual_notes
 
-manual_needs_multi_pin counts
-manual_needs_multi_pin
-false    81
-true     37
+tier_label counts
+tier_label
+no_building            36
+standard_commercial    35
+multi_tenant           26
+open_space              6
+
+place_complexity counts
+place_complexity
+simple          90
+complex          9
+multi_tenant     4
+
+pin_ambiguity counts
+pin_ambiguity
+low       53
+high      44
+medium     6
+
+should_move counts
+should_move
+False    80
+True     23

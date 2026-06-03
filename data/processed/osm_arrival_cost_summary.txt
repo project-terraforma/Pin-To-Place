@@ -1,0 +1,23 @@
+OSM Arrival Cost Summary (OSRM)
+
+Total rows:            3425
+Routed via OSRM:       365
+Fallback (haversine):  0
+Zero-offset skipped:   3025
+
+Routing penalty > 0 (extra walking due to real obstacles)
+count     183.00
+mean      169.47
+std       523.07
+min         0.03
+25%        15.26
+50%        44.58
+75%       140.61
+max      6451.99
+Places with any penalty:  183
+Penalty >= 10m:           150
+Penalty >= 25m:           113
+
+p90/p95 comparison
+  haversine p90:  20.01m   OSRM p90:  6.86m
+  haversine p95:  23.34m   OSRM p95:  25.70m

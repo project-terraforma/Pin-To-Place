@@ -1,0 +1,37 @@
+Machine Visual Review Summary
+
+Important
+This is machine-assisted validation, not human ground truth.
+
+Rows reviewed: 9
+
+machine_visual_status
+machine_visual_status
+accepted              5
+wrong_target          3
+needs_human_review    1
+
+machine_should_accept_without_human
+machine_should_accept_without_human
+True     5
+False    4
+
+machine_pedestrian_entry_correct
+machine_pedestrian_entry_correct
+yes    5
+no     4
+
+machine_vehicle_entry_correct
+machine_vehicle_entry_correct
+yes    5
+no     4
+
+machine_confidence
+count    9.000000
+mean     0.855556
+std      0.209828
+min      0.300000
+25%      0.900000
+50%      0.900000
+75%      0.950000
+max      0.950000

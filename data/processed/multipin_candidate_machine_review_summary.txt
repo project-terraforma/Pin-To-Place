@@ -1,0 +1,31 @@
+Multi-Pin Candidate Machine Review Summary
+
+Important
+This is machine-assisted screening, not human ground truth.
+
+Rows reviewed: 250
+
+multipin_need_status
+multipin_need_status
+needs_human_review     248
+needs_multiple_pins      2
+
+recommended_pin_schema
+recommended_pin_schema
+unknown                                                                                                                                                                                                                                                                                                                                                                                                                                                       248
+The place is an RV Park and a Horse Camp, suggesting distinct access needs for RVs and horse trailers/riders. RVs typically require specific entrances for large vehicles and hookups, while horse-related activities (stables, riding trails, trailer parking) may have separate or preferred access points. The large and complex nature of the camp, as indicated by the place data and visual spread, supports the need for multiple specialized pins.      1
+Multiple pins for different camping areas or entrances within the campground.                                                                                                                                                                                                                                                                                                                                                                                   1
+
+should_prioritize_for_human_review
+should_prioritize_for_human_review
+True    250
+
+machine_confidence
+count    250.000000
+mean       0.006800
+std        0.075873
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        0.000000
+max        0.850000

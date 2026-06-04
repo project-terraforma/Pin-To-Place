@@ -1,0 +1,14 @@
+Pin Repositioning Analysis Summary
+
+Places flagged should_move: 392
+  Median arrival cost before repositioning: 22.4m
+  Mean arrival cost before repositioning:   60.8m
+  Total navigation distance eliminated:     23831m
+
+Dual-labeled places with separation >= 10m: 1745
+  Current pin - median pedestrian cost: 0.0m
+  Current pin - median driver cost:     21.9m
+  Scenario C (task-specific pins):      0m for both modes
+  Current pin serves pedestrians better in 87.2% of cases
+
+Places that should move AND have dual entry: 324

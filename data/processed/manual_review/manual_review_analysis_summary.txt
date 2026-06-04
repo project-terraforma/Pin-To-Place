@@ -1,0 +1,12 @@
+Manual Review Analysis Summary
+
+{'reviewed_rows': 0, 'accepted_rate_pct': 0, 'wrong_target_rate_pct': 0, 'ambiguous_rate_pct': 0, 'multi_pin_needed_rate_pct': 0}
+
+Review status counts
+Series([], )
+
+Manual primary pin type counts
+Series([], )
+
+Should-move mismatches
+0

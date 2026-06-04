@@ -18,11 +18,11 @@ PROCESSED = PROJECT_ROOT / "data" / "processed"
 
 
 def load_ground_truth_batches() -> pd.DataFrame:
-    files = sorted(f for f in PROCESSED.glob("ground_truth_*.csv")
+    files = sorted(f for f in (PROCESSED / "ground_truth").glob("ground_truth_*.csv")
                    if f.stem != "ground_truth_combined")
 
     if not files:
-        raise FileNotFoundError("No ground_truth_*.csv files found in data/processed")
+        raise FileNotFoundError("No ground_truth_*.csv files found in data/processed/ground_truth")
 
     dfs = [pd.read_csv(path) for path in files]
     return pd.concat(dfs, ignore_index=True)
@@ -50,11 +50,13 @@ def make_review_queues(df: pd.DataFrame) -> None:
         random_state=42,
     )
 
-    high_offset.to_csv(PROCESSED / "review_high_offset.csv", index=False)
-    low_confidence.to_csv(PROCESSED / "review_low_confidence.csv", index=False)
-    multi_tenant.to_csv(PROCESSED / "review_multi_tenant.csv", index=False)
-    movable.to_csv(PROCESSED / "review_should_move.csv", index=False)
-    zero_sample.to_csv(PROCESSED / "review_zero_offset_sample.csv", index=False)
+    rq = PROCESSED / "review_queues"
+    rq.mkdir(exist_ok=True)
+    high_offset.to_csv(rq / "review_high_offset.csv", index=False)
+    low_confidence.to_csv(rq / "review_low_confidence.csv", index=False)
+    multi_tenant.to_csv(rq / "review_multi_tenant.csv", index=False)
+    movable.to_csv(rq / "review_should_move.csv", index=False)
+    zero_sample.to_csv(rq / "review_zero_offset_sample.csv", index=False)
 
 
 def write_summary(df: pd.DataFrame) -> None:
@@ -73,7 +75,9 @@ def write_summary(df: pd.DataFrame) -> None:
     lines.append("By ambiguity")
     lines.append(segmented_task_report(df, "pin_ambiguity").to_string(index=False))
 
-    (PROCESSED / "ground_truth_audit_summary.txt").write_text("\n".join(lines))
+    audit = PROCESSED / "audit"
+    audit.mkdir(exist_ok=True)
+    (audit / "ground_truth_audit_summary.txt").write_text("\n".join(lines))
 
 
 def main() -> None:

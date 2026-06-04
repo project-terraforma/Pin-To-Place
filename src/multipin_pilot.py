@@ -21,8 +21,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED = PROJECT_ROOT / "data" / "processed"
 
 GT_PATH = PROCESSED / "ground_truth_combined.csv"
-MULTIPIN_OUTPUT = PROCESSED / "multipin_pilot.csv"
-MULTIPIN_SUMMARY = PROCESSED / "multipin_pilot_summary.txt"
+MULTIPIN_OUTPUT = PROCESSED / "multipin" / "multipin_pilot.csv"
+MULTIPIN_SUMMARY = PROCESSED / "multipin" / "multipin_pilot_summary.txt"
 
 
 def build_multipin_pilot() -> pd.DataFrame:

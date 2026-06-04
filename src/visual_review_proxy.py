@@ -21,9 +21,9 @@ from src.metrics import haversine_meters
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED = PROJECT_ROOT / "data" / "processed"
 
-MULTIPIN_PATH = PROCESSED / "multipin_pilot.csv"
-OUTPUT_PATH = PROCESSED / "multipin_visual_review.csv"
-SUMMARY_PATH = PROCESSED / "multipin_visual_review_summary.txt"
+MULTIPIN_PATH = PROCESSED / "multipin" / "multipin_pilot.csv"
+OUTPUT_PATH = PROCESSED / "multipin" / "multipin_visual_review.csv"
+SUMMARY_PATH = PROCESSED / "multipin" / "multipin_visual_review_summary.txt"
 
 
 def _map_link(lat, lon) -> str:

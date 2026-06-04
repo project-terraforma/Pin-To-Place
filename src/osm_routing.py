@@ -30,9 +30,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED = PROJECT_ROOT / "data" / "processed"
 
 GT_PATH      = PROCESSED / "ground_truth_combined.csv"
-CACHE_PATH   = PROCESSED / "osm_routing_cache.csv"
-OUTPUT_PATH  = PROCESSED / "osm_arrival_cost.csv"
-SUMMARY_PATH = PROCESSED / "osm_arrival_cost_summary.txt"
+CACHE_PATH   = PROCESSED / "osm_routing" / "osm_routing_cache.csv"
+OUTPUT_PATH  = PROCESSED / "osm_routing" / "osm_arrival_cost.csv"
+SUMMARY_PATH = PROCESSED / "osm_routing" / "osm_arrival_cost_summary.txt"
 
 OSRM_BASE    = "http://router.project-osrm.org/route/v1/foot"
 TIMEOUT      = 10   # seconds per request

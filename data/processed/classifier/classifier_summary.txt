@@ -1,0 +1,20 @@
+Should-Move Classifier Summary
+
+Features used (no GT coordinate leakage):
+  gt_confidence, tier_label, place_complexity, pin_ambiguity, entry_mode, sub_tier_label
+
+5-fold cross-validated ROC-AUC:
+  LogReg        0.847 ± 0.014
+  DecTree       0.993 ± 0.002
+  RandForest    0.993 ± 0.001
+
+Random Forest on test set:
+              precision    recall  f1-score   support
+
+        stay       1.00      0.94      0.97       607
+        move       0.68      0.99      0.80        78
+
+    accuracy                           0.94       685
+   macro avg       0.84      0.96      0.88       685
+weighted avg       0.96      0.94      0.95       685
+
